@@ -1,0 +1,23 @@
+node_modules
+dist
+coverage
+.turbo
+.next
+storybook-static
+playwright-report
+test-results
+apps/*/src/generated
+packages/api-client/src/schema.d.ts
+apps/api/openapi.json
+package-lock.json
+
+# Rendered by the tlc-spec-driven lessons script; formatting would be overwritten.
+.specs/LESSONS.md
+.specs/lessons.json
+
+# Output of the graphify tool.
+graphify-out
+
+# Spec documents are authored by the tlc-spec-driven flow; line numbers are
+# referenced across them, so formatting must not reflow the tables.
+.specs

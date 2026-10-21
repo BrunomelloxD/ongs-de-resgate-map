@@ -1,0 +1,218 @@
+# Development stack. Infra vars: root .env; app vars: apps/<app>/.env.
+#
+#   docker compose up --build
+#   docker compose --profile mock up mock-api
+#   docker compose --profile docs up storybook
+#
+# Dev-only storage (MinIO, S3 API on 9000, console on 9001) and mail catcher
+# (Mailpit, SMTP on 1025, UI on 8025).
+
+x-database-url: &database-url postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@database:5432/${POSTGRES_DB:-app}
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: dev
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      # Picks up contract types regenerated on the host.
+      - ./packages/api-client/src:/app/packages/api-client/src
+    env_file:
+      - apps/web/.env
+    environment:
+      API_URL: http://api:${API_PORT:-3333}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q --spider http://127.0.0.1:3000/ || exit 1']
+      interval: 10s
+      timeout: 30s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: dev
+    command: sh -c "npx prisma generate && npm run start:dev"
+    ports:
+      - '${API_PORT:-3333}:${API_PORT:-3333}'
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+      - ./apps/api/prisma:/app/apps/api/prisma
+    env_file:
+      - apps/api/.env
+    # Container network overrides.
+    environment:
+      PORT: ${API_PORT:-3333}
+      DATABASE_URL: *database-url
+      CORS_ORIGIN: http://localhost:${WEB_PORT:-3000}
+      # Dev storage and mail replace the hosted ones from apps/api/.env.
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: ${MINIO_BUCKET:-animal-helper-dev}
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_FORCE_PATH_STYLE: 'true'
+      SMTP_URL: smtp://mailpit:1025
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:$$PORT/health || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      database:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: dev
+    command: npx prisma migrate deploy
+    volumes:
+      - ./apps/api/prisma:/app/apps/api/prisma
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: 'no'
+
+  database:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      # Postgres 18+ mounts here, not in /data.
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-app}',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - app-network
+
+  # S3-compatible storage for dev (the hosted bucket is used in production).
+  minio:
+    # The minio/minio images left Docker Hub; Chainguard keeps maintaining them.
+    image: chainguard/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - '${MINIO_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - minio:/data
+    healthcheck:
+      # The image has bash but no curl or wget.
+      test:
+        [
+          'CMD',
+          'bash',
+          '-c',
+          'exec 3<>/dev/tcp/127.0.0.1/9000 && printf "GET /minio/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 && read -r line <&3 && [[ $$line == *200* ]]',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - app-network
+
+  # Creates the dev bucket and exits.
+  minio-init:
+    image: chainguard/minio-client:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MC_HOST_local: http://${MINIO_ROOT_USER:-minioadmin}:${MINIO_ROOT_PASSWORD:-minioadmin}@minio:9000
+    command:
+      ['mb', '--ignore-existing', 'local/${MINIO_BUCKET:-animal-helper-dev}']
+    networks:
+      - app-network
+    restart: 'no'
+
+  # Catches every e-mail the api sends in dev.
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - '${MAILPIT_SMTP_PORT:-1025}:1025'
+      - '${MAILPIT_UI_PORT:-8025}:8025'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+    networks:
+      - app-network
+
+  # ---------- optional (profiles) ----------
+
+  # Fake API from apps/api/openapi.json (run npm run generate first).
+  mock-api:
+    profiles: ['mock']
+    image: stoplight/prism:5
+    # The image crashes in multiprocess mode.
+    command: mock -h 0.0.0.0 --multiprocess=false /spec/openapi.json
+    ports:
+      - '${MOCK_API_PORT:-4010}:4010'
+    volumes:
+      - ./apps/api/openapi.json:/spec/openapi.json:ro
+
+  storybook:
+    profiles: ['docs']
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: dev
+    command: npm run storybook -- --host 0.0.0.0 --no-open
+    ports:
+      - '${STORYBOOK_PORT:-6006}:6006'
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/.storybook:/app/apps/web/.storybook
+
+volumes:
+  postgres:
+  minio:
+
+networks:
+  app-network:
+    driver: bridge

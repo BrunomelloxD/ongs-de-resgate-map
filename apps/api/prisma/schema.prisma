@@ -1,0 +1,193 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum NgoStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+
+  @@map("ngo_status")
+}
+
+enum Species {
+  DOG
+  CAT
+  OTHER
+
+  @@map("species")
+}
+
+enum Sex {
+  MALE
+  FEMALE
+
+  @@map("sex")
+}
+
+enum Size {
+  SMALL
+  MEDIUM
+  LARGE
+
+  @@map("size")
+}
+
+enum AgeUnit {
+  MONTHS
+  YEARS
+
+  @@map("age_unit")
+}
+
+model Ngo {
+  id                  String    @id @default(uuid())
+  cnpj                String    @unique @db.Char(14)
+  legalName           String    @map("legal_name") @db.VarChar(150)
+  slug                String    @unique @db.VarChar(160)
+  description         String
+  // Prefix ngos/{id}/logo/{uuid}; variants -160 and -600.
+  imageKey            String?   @map("image_key")
+  imageBytes          Int       @default(0) @map("image_bytes")
+  email               String    @unique @db.Citext
+  whatsapp            String    @db.VarChar(13)
+  passwordHash        String    @map("password_hash")
+  cep                 String    @db.Char(8)
+  street              String    @db.VarChar(150)
+  number              String    @db.VarChar(10)
+  complement          String?   @db.VarChar(60)
+  district            String    @db.VarChar(80)
+  city                String    @db.VarChar(80)
+  uf                  String    @db.Char(2)
+  // Plain double precision columns, no PostGIS (AD-005).
+  lat                 Float
+  lng                 Float
+  locationConfirmedAt DateTime  @map("location_confirmed_at") @db.Timestamptz(3)
+  timezone            String    @db.VarChar(40)
+  status              NgoStatus @default(ACTIVE)
+  isSeed              Boolean   @default(false) @map("is_seed")
+  expiresAt           DateTime? @map("expires_at") @db.Timestamptz(3)
+  termsAcceptedAt     DateTime  @map("terms_accepted_at") @db.Timestamptz(3)
+  termsVersion        String    @map("terms_version") @db.VarChar(20)
+  signupRequestId     String?   @unique @map("signup_request_id") @db.Uuid
+  signupIpHash        String?   @map("signup_ip_hash") @db.Char(64)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  openingHours OpeningHours[]
+  animals      Animal[]
+  images       AnimalImage[]
+  sessions     Session[]
+  resets       PasswordReset[]
+
+  @@index([status, lat, lng])
+  @@index([isSeed, expiresAt])
+  @@map("ngos")
+}
+
+model OpeningHours {
+  id        String  @id @default(uuid())
+  ngoId     String  @map("ngo_id")
+  // 0 = Sunday
+  dayOfWeek Int     @map("day_of_week") @db.SmallInt
+  closed    Boolean
+  // "HH:MM", local to ngo.timezone
+  opensAt   String? @map("opens_at") @db.Char(5)
+  closesAt  String? @map("closes_at") @db.Char(5)
+
+  ngo Ngo @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+
+  @@unique([ngoId, dayOfWeek])
+  @@map("opening_hours")
+}
+
+model Animal {
+  id                 String   @id @default(uuid())
+  ngoId              String   @map("ngo_id")
+  name               String   @db.VarChar(60)
+  species            Species
+  breed              String?  @db.VarChar(60)
+  sex                Sex
+  size               Size
+  ageValue           Int      @map("age_value") @db.SmallInt
+  ageUnit            AgeUnit  @map("age_unit")
+  description        String?  @db.VarChar(1000)
+  available          Boolean  @default(true)
+  availableChangedAt DateTime @default(now()) @map("available_changed_at") @db.Timestamptz(3)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  ngo    Ngo           @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  images AnimalImage[]
+
+  @@index([ngoId, available, species])
+  @@map("animals")
+}
+
+model AnimalImage {
+  id        String   @id @default(uuid())
+  // Owner even while the upload is pending.
+  ngoId     String   @map("ngo_id")
+  // null = pending (uploaded, not yet saved with the animal)
+  animalId  String?  @map("animal_id")
+  // 0 = cover; null while pending
+  position  Int?     @db.SmallInt
+  // ngos/{ngoId}/images/{id}; variants -160 and -1200, .webp
+  keyPrefix String   @map("key_prefix")
+  // Sum of both variants
+  bytes     Int
+  width     Int
+  height    Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  ngo    Ngo     @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  animal Animal? @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@unique([animalId, position])
+  @@index([animalId, createdAt])
+  @@map("animal_images")
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  ngoId      String   @map("ngo_id")
+  tokenHash  String   @unique @map("token_hash") @db.Char(64)
+  lastUsedAt DateTime @default(now()) @map("last_used_at") @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  ngo Ngo @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+
+  @@index([ngoId])
+  @@map("sessions")
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid())
+  ngoId     String    @map("ngo_id")
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  ngo Ngo @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+
+  @@index([ngoId])
+  @@map("password_resets")
+}
+
+model RateLimitHit {
+  id        BigInt   @id @default(autoincrement())
+  bucket    String   @db.VarChar(40)
+  keyHash   String   @map("key_hash") @db.Char(64)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([bucket, keyHash, createdAt])
+  @@map("rate_limit_hits")
+}

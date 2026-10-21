@@ -2,7 +2,10 @@
 
 Mapa de ONGs que resgatam e cuidam de animais: o visitante encontra ONGs perto de casa, conhece os animais e fala com a ONG pelo WhatsApp; a ONG mantém o perfil e os animais disponíveis.
 
-> **Estado:** base do monorepo pronta, **sem features implementadas**. Produto em [prd.md](prd.md); telas em `.specs/front/` (FigCraft + PNGs).
+> ⚠️ **Em desenvolvimento, ainda não está pronto para uso.**
+> O MVP está sendo implementado: a api está completa; no web faltam o formulário de animal, o perfil da ONG, o compartilhamento e a validação final. Pode haver telas incompletas e mudanças que quebram compatibilidade. Não use em produção.
+>
+> Produto em [prd.md](prd.md).
 
 Monorepo com **npm workspaces** e **Turborepo**: API **NestJS** + front **Next** (SSR-first), derivado da base [web-hook-nestjs-observe](https://github.com/BrunomelloxD/web-hook-nestjs-observe) sem o domínio de exemplo (chat e webhooks).
 

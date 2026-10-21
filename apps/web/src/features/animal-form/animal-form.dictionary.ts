@@ -72,6 +72,19 @@ export const animalFormDictionary = {
     markedUnavailable: (name: string) => `${name} agora está indisponível.`,
     markFailed: 'Não foi possível salvar. Tente de novo.',
   },
+  page: {
+    newTitle: 'Cadastrar animal',
+    // SPEC_DEVIATION: the edit title follows the design; the spec doesn't name it.
+    editTitle: (name: string) => `Editar ${name}`,
+    metaEdit: 'Editar animal',
+    back: 'Voltar para seus animais',
+  },
+  notFound: {
+    /** Same text as the api's 404 (edge case "Animal não encontrado."). */
+    title: 'Animal não encontrado.',
+    // SPEC_DEVIATION: not in the spec.
+    description: 'Ele pode ter sido excluído, ou o link está errado.',
+  },
   form: {
     // SPEC_DEVIATION: labels, placeholders, options and buttons come from the design
     // (.specs/front/previews/10-*); the spec only fixes the fields (AFORM-01 to AFORM-06).

@@ -135,13 +135,14 @@ export interface TestAnimal {
   sex: 'MALE' | 'FEMALE';
 }
 
-/** Creates the animals through the api (AFORM-01), each with one photo. */
+/** Creates the animals through the api (AFORM-01), each with one photo; returns their ids. */
 export async function createAnimals(
   ngo: TestNgo,
   animals: readonly TestAnimal[],
-): Promise<void> {
+): Promise<string[]> {
   const ip = newTestIp();
   const token = await sessionToken(ngo, ip);
+  const ids: string[] = [];
   for (const animal of animals) {
     const form = new FormData();
     form.append('file', new Blob([PHOTO], { type: 'image/png' }), 'foto.png');
@@ -156,7 +157,7 @@ export async function createAnimals(
     });
     if (!upload.ok) throw new Error(`POST /me/images: ${upload.status}`);
     const { id } = (await upload.json()) as { id: string };
-    await api('/me/animals', {
+    const created = await api('/me/animals', {
       method: 'POST',
       ip,
       token,
@@ -168,7 +169,55 @@ export async function createAnimals(
         imageIds: [id],
       }),
     });
+    ids.push(((await created.json()) as { id: string }).id);
   }
+  return ids;
+}
+
+/** Id and slug of the NGO (GET /me/ngo): the bucket prefix and the public page. */
+export async function ngoIdentity(
+  ngo: TestNgo,
+): Promise<{ id: string; slug: string }> {
+  const ip = newTestIp();
+  const token = await sessionToken(ngo, ip);
+  const response = await fetch(`${API_URL}/me/ngo`, {
+    headers: {
+      'X-Internal-Token': internalToken(),
+      'X-Client-IP': ip,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error(`GET /me/ngo: ${response.status}`);
+  return (await response.json()) as { id: string; slug: string };
+}
+
+/** Object keys under `prefix` in the Compose MinIO, read with the stack's own mc container. */
+export function bucketKeys(prefix: string): string[] {
+  if (!/^[\w/-]+$/.test(prefix)) throw new Error('Unexpected prefix');
+  const env = parseEnv(readFileSync(`${ROOT}.env`, 'utf8'));
+  const bucket = env['MINIO_BUCKET'] ?? 'animal-helper-dev';
+  const output = execFileSync(
+    'docker',
+    [
+      'compose',
+      'run',
+      '--rm',
+      '--no-deps',
+      '-T',
+      'minio-init',
+      'ls',
+      '--recursive',
+      '--json',
+      `local/${bucket}/${prefix}`,
+    ],
+    { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' },
+  );
+  return output
+    .split('\n')
+    .filter((line) => line.startsWith('{'))
+    .map((line) => JSON.parse(line) as { key?: string; status?: string })
+    .filter((entry) => entry.status === 'success' && entry.key)
+    .map((entry) => `${prefix}${entry.key}`);
 }
 
 /** Deletes the NGO through the api (PROF-07), logging in from another IP. */

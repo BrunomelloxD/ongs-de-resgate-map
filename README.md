@@ -7,8 +7,6 @@ Mapa de ONGs que resgatam e cuidam de animais: o visitante encontra ONGs perto d
 >
 > Produto em [prd.md](prd.md).
 
-Monorepo com **npm workspaces** e **Turborepo**: API **NestJS** + front **Next** (SSR-first), derivado da base [web-hook-nestjs-observe](https://github.com/BrunomelloxD/web-hook-nestjs-observe) sem o domínio de exemplo (chat e webhooks).
-
 | Caminho                  | O quê                                                                               |
 | ------------------------ | ----------------------------------------------------------------------------------- |
 | `apps/api`               | API NestJS ([README](apps/api/README.md), [ARCHITECTURE](apps/api/ARCHITECTURE.md)) |

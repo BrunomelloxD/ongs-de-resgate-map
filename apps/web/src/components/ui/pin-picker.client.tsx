@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Marker } from 'react-leaflet';
 import { bboxForRadius } from '@/lib/geo';
 import { cn } from '@/lib/utils';
+import { Alert } from './alert';
 import { Button } from './button';
 import {
   MapView,
@@ -17,7 +18,8 @@ export const PIN_PICKER_TEXT = {
   notFound: 'Arraste o pino até o local',
   // SPEC_DEVIATION: the spec doesn't word the hint, the confirmation or the labels.
   // Reason: the hint is the design's (07c); the rest is the simplest wording.
-  hint: 'O pino está na entrada da ONG? Se não estiver, arraste o pino até o lugar certo.',
+  hintTitle: 'O pino está na entrada da ONG?',
+  hint: 'Se não estiver, arraste o pino até o lugar certo. É ali que os visitantes vão chegar.',
   confirm: 'Confirmar localização',
   confirmed: 'Localização confirmada.',
   map: 'Mapa com o pino da ONG',
@@ -106,23 +108,21 @@ export function PinPicker({
           />
         </MapView>
       </div>
-      <p
-        className={cn(
-          'rounded-card p-4 text-sm',
-          notFound
-            ? 'bg-error-soft text-error-fg font-semibold'
-            : 'bg-gem-soft text-gem-soft-fg',
-        )}
-      >
-        {notFound ? PIN_PICKER_TEXT.notFound : PIN_PICKER_TEXT.hint}
-      </p>
+      {notFound ? (
+        <Alert variant="error" title={PIN_PICKER_TEXT.notFound} />
+      ) : (
+        <Alert variant="info" title={PIN_PICKER_TEXT.hintTitle}>
+          {PIN_PICKER_TEXT.hint}
+        </Alert>
+      )}
       <div role="status" className="text-sm font-semibold text-available-fg">
         {confirmed && PIN_PICKER_TEXT.confirmed}
       </div>
       <Button
         type="button"
         variant="outline"
-        className="touch-target self-start px-4"
+        size="sm"
+        className="touch-target self-start"
         aria-pressed={confirmed}
         onClick={handleConfirm}
       >

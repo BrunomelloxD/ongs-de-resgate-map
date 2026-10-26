@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { makeCity } from '../test-fixtures';
-import type { City } from '../location.types';
+import type { City, LookupCepResult } from '../location.types';
 import { CityAutocomplete } from './city-autocomplete.client';
 
 const VILA_VELHA = makeCity({ id: 3205200, name: 'Vila Velha', uf: 'ES' });
@@ -46,9 +46,14 @@ describe('CityAutocomplete', () => {
     expect(search).toHaveBeenCalledTimes(1);
     expect(search).toHaveBeenCalledWith('vil', expect.any(AbortSignal));
     expect(input).toHaveAttribute('aria-expanded', 'true');
-    expect(
-      screen.getAllByRole('option').map((option) => option.textContent),
-    ).toEqual(['Vila Velha, ES', 'Vilhena, RO']);
+    // T186: each option shows the name and "Cidade · UF", and is named by both lines.
+    expect(screen.getAllByRole('option')).toEqual([
+      screen.getByRole('option', { name: 'Vila Velha Cidade · ES' }),
+      screen.getByRole('option', { name: 'Vilhena Cidade · RO' }),
+    ]);
+    expect(screen.getAllByRole('option')[0]).toHaveTextContent(
+      'Vila Velha Cidade · ES',
+    );
   });
 
   it('LOC-07: "vi" (menos de 3 caracteres) não busca', async () => {
@@ -127,8 +132,12 @@ describe('CityAutocomplete', () => {
 
     type('vil');
     await advance(250);
-    fireEvent.mouseDown(screen.getByRole('option', { name: 'Vila Velha, ES' }));
-    fireEvent.click(screen.getByRole('option', { name: 'Vila Velha, ES' }));
+    fireEvent.mouseDown(
+      screen.getByRole('option', { name: 'Vila Velha Cidade · ES' }),
+    );
+    fireEvent.click(
+      screen.getByRole('option', { name: 'Vila Velha Cidade · ES' }),
+    );
 
     expect(onSelect).toHaveBeenCalledWith(VILA_VELHA);
     expect(input).toHaveValue('Vila Velha – ES');
@@ -205,8 +214,221 @@ describe('CityAutocomplete', () => {
     expect(screen.queryAllByRole('option')).toHaveLength(0);
 
     await advance(250);
+    expect(screen.getAllByRole('option')).toEqual([
+      screen.getByRole('option', { name: 'Vila Rica Cidade · MT' }),
+    ]);
+  });
+});
+
+describe('CityAutocomplete com CEP (T186, figcraft "Cidade ou CEP")', () => {
+  const ADDRESS = {
+    street: 'Rua Domingos de Morais',
+    district: 'Vila Mariana',
+    city: 'São Paulo',
+    uf: 'SP',
+    lat: -23.5869,
+    lng: -46.6347,
+  };
+
+  function setupCep(
+    lookupCep: (cep: string) => Promise<LookupCepResult> = vi.fn(
+      async (_cep: string) => ({ ok: true as const, address: ADDRESS }),
+    ),
+  ) {
+    const onSelect = vi.fn();
+    const onCep = vi.fn();
+    const search = vi.fn(async () => [VILA_VELHA]);
+    render(
+      <CityAutocomplete
+        onSelect={onSelect}
+        onCep={onCep}
+        search={search}
+        lookupCep={lookupCep}
+        submitLabel="Ver ONGs nesta região"
+        extra={<button type="button">Tentar de novo</button>}
+      />,
+    );
+    const input = screen.getByRole('combobox', { name: 'Cidade ou CEP' });
+    const type = (value: string) =>
+      fireEvent.change(input, { target: { value } });
+    const submit = () =>
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Ver ONGs nesta região' }),
+      );
+    return { input, type, submit, onSelect, onCep, search, lookupCep };
+  }
+
+  it('L-05: um campo só, com a dica "Ex.: Campinas ou 13010-000", o primário e o extra', () => {
+    const { input } = setupCep();
+
+    expect(input).toHaveAttribute('placeholder', 'Ex.: Campinas ou 13010-000');
     expect(
-      screen.getAllByRole('option').map((option) => option.textContent),
-    ).toEqual(['Vila Rica, MT']);
+      screen.getByRole('button', { name: 'Ver ONGs nesta região' }),
+    ).toHaveAttribute('type', 'submit');
+    expect(
+      screen.getByRole('button', { name: 'Tentar de novo' }),
+    ).toBeVisible();
+  });
+
+  it('LOC-09: os 8 números do CEP viram uma sugestão com o endereço; escolhê-la emite o ponto', async () => {
+    const { input, type, onCep, search, lookupCep } = setupCep();
+
+    type('04101000');
+    expect(input).toHaveValue('04101-000');
+    await advance(0);
+
+    expect(lookupCep).toHaveBeenCalledWith('04101-000');
+    expect(search).not.toHaveBeenCalled();
+    const option = screen.getByRole('option', {
+      name: '04101-000 Vila Mariana, São Paulo – SP',
+    });
+    expect(option).toHaveTextContent('Vila Mariana, São Paulo – SP');
+    fireEvent.click(option);
+
+    expect(onCep).toHaveBeenCalledWith({ ...ADDRESS, cep: '04101-000' });
+  });
+
+  it('LOC-09: seta para baixo + Enter na sugestão do CEP emite o ponto', async () => {
+    const { input, type, onCep } = setupCep();
+
+    type('04101000');
+    await advance(0);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onCep).toHaveBeenCalledWith({ ...ADDRESS, cep: '04101-000' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('LOC-09: com o CEP encontrado, "Ver ONGs nesta região" emite o ponto', async () => {
+    const { type, submit, onCep } = setupCep();
+
+    type('04101-000');
+    await advance(0);
+    submit();
+
+    expect(onCep).toHaveBeenCalledWith({ ...ADDRESS, cep: '04101-000' });
+  });
+
+  it('LOC-10/LOC-11: a mensagem da busca do CEP fica no campo', async () => {
+    const message =
+      'CEP não encontrado. Confira os números ou busque pela cidade.';
+    const { input, type, submit, onCep } = setupCep(
+      vi.fn(async () => ({ ok: false as const, error: message })),
+    );
+
+    type('00000000');
+    await advance(0);
+    submit();
+
+    expect(screen.getByText(message)).toBeVisible();
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription(message);
+    expect(onCep).not.toHaveBeenCalled();
+  });
+
+  it('CEP com menos de 8 números: "Digite os 8 números do CEP." ao enviar', () => {
+    const { type, submit, lookupCep } = setupCep();
+
+    type('04101');
+    submit();
+
+    expect(screen.getByText('Digite os 8 números do CEP.')).toBeVisible();
+    expect(lookupCep).not.toHaveBeenCalled();
+  });
+
+  it('texto sem escolher uma cidade, ou vazio, pede a escolha ao enviar', async () => {
+    const { type, submit, onSelect } = setupCep();
+
+    submit();
+    expect(screen.getByText('Digite uma cidade ou um CEP.')).toBeVisible();
+
+    type('vila');
+    await advance(250);
+    submit();
+    expect(screen.getByText('Escolha uma cidade da lista.')).toBeVisible();
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('com uma cidade destacada, "Ver ONGs nesta região" emite o município', async () => {
+    const { input, type, submit, onSelect } = setupCep();
+
+    type('vila');
+    await advance(250);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    submit();
+
+    expect(onSelect).toHaveBeenCalledWith(VILA_VELHA);
+  });
+
+  it('enquanto busca o CEP, o primário fica desabilitado com "Buscando…" e uma resposta antiga é descartada', async () => {
+    let finish: (value: LookupCepResult) => void = () => {};
+    const { type, onCep } = setupCep(
+      vi.fn(
+        () => new Promise<LookupCepResult>((resolve) => (finish = resolve)),
+      ),
+    );
+
+    type('04101000');
+    expect(screen.getByRole('button', { name: 'Buscando…' })).toBeDisabled();
+    type('0410100');
+    finish({ ok: true, address: ADDRESS });
+    await advance(0);
+
+    expect(screen.queryAllByRole('option')).toHaveLength(0);
+    expect(
+      screen.getByRole('button', { name: 'Ver ONGs nesta região' }),
+    ).toBeEnabled();
+    expect(onCep).not.toHaveBeenCalled();
+  });
+
+  it('CEP sem coordenada mostra a mensagem do LOC-11', async () => {
+    const { type } = setupCep(
+      vi.fn(async () => ({
+        ok: true as const,
+        address: { ...ADDRESS, lat: null, lng: null },
+      })),
+    );
+
+    type('04101000');
+    await advance(0);
+
+    expect(
+      screen.getByText(
+        'Não conseguimos buscar o CEP agora. Tente pela cidade.',
+      ),
+    ).toBeVisible();
+  });
+});
+
+describe('CityAutocomplete na barra do mapa (T187, figcraft "Search/Map")', () => {
+  it('M-01: rótulo próprio escondido, pílula com o botão no fim e sugestões sobre o mapa', async () => {
+    render(
+      <CityAutocomplete
+        onSelect={vi.fn()}
+        search={vi.fn(async () => [])}
+        label="Buscar outra região"
+        variant="bar"
+        trailing={<button type="button">Filtros</button>}
+      />,
+    );
+    const input = screen.getByRole('combobox', { name: 'Buscar outra região' });
+
+    expect(screen.getByText('Buscar outra região')).toHaveClass('sr-only');
+    expect(input.parentElement).toHaveClass('rounded-full', 'shadow-card');
+    expect(input.parentElement).toContainElement(
+      screen.getByRole('button', { name: 'Filtros' }),
+    );
+    expect(screen.getByRole('listbox', { hidden: true })).toHaveClass(
+      'absolute',
+      'top-full',
+    );
+
+    fireEvent.change(input, { target: { value: 'xyz' } });
+    await advance(250);
+    // Over the map, the message gets a card.
+    expect(
+      screen.getByText('Nenhuma cidade encontrada.').parentElement,
+    ).toHaveClass('bg-surface');
   });
 });

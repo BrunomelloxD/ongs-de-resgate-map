@@ -36,6 +36,20 @@ function setup(props: Partial<NgoListProps> = {}) {
 }
 
 describe('NgoList', () => {
+  it('T187: os filtros ficam entre o título e as ONGs', () => {
+    setup({ filters: <p>filtros</p> });
+
+    const title = screen.getByRole('heading', { name: '2 ONGs perto de você' });
+    const filters = screen.getByText('filtros');
+    expect(
+      title.compareDocumentPosition(filters) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      filters.compareDocumentPosition(screen.getByRole('list')) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('MAP-12: carregando mostra o skeleton e "Buscando ONGs perto de você…"', () => {
     const { container } = setup({ status: 'loading', items: [] });
 

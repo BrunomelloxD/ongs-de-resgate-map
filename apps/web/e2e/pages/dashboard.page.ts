@@ -69,7 +69,18 @@ export class DashboardPage {
     return this.page.unroute('**/painel');
   }
 
-  logout() {
-    return this.page.getByRole('button', { name: t.header.logout }).click();
+  get profileLink() {
+    return this.page.getByRole('link', { name: t.header.profile });
+  }
+
+  /** T184: on the phone "Perfil da ONG" and "Sair" live in the ≡ menu. */
+  async openMenu() {
+    const menu = this.page.getByRole('button', { name: t.header.openMenu });
+    if (await menu.isVisible()) await menu.click();
+  }
+
+  async logout() {
+    await this.openMenu();
+    await this.page.getByRole('button', { name: t.header.logout }).click();
   }
 }

@@ -20,7 +20,7 @@ export interface DeleteAnimalDialogProps {
   onMarkUnavailable: SetAvailability;
 }
 
-const ACTION = 'w-full rounded-full text-base font-semibold sm:w-auto';
+const ACTION = 'w-full sm:w-auto';
 
 /** AFORM-15, AFORM-16: confirms the deletion and suggests marking as unavailable. */
 export function DeleteAnimalDialog({

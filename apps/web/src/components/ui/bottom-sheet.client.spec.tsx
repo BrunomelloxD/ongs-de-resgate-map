@@ -134,6 +134,27 @@ describe('BottomSheet (MAP-08)', () => {
     expect(handle()).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('T187: recolhido, mostra a altura pedida; aberto, vai até `openTop`', async () => {
+    renderSheet({ collapsedHeight: '14rem', openTop: '150px' });
+
+    expect(sheet().className).toContain(
+      'translate-y-[calc(100%-var(--sheet-peek))]',
+    );
+    expect(sheet().style.getPropertyValue('--sheet-peek')).toBe('14rem');
+    expect(sheet()).toHaveStyle({ top: '150px' });
+    expect(sheet().className).not.toContain('max-h-[85dvh]');
+
+    await userEvent.click(handle());
+    expect(sheet().className).toContain('translate-y-0');
+  });
+
+  it('sem `openTop`, aberto fica com até 85% da tela; recolhido mostra 9rem', () => {
+    renderSheet();
+
+    expect(sheet().className).toContain('max-h-[85dvh]');
+    expect(sheet().style.getPropertyValue('--sheet-peek')).toBe('9rem');
+  });
+
   it('com movimento, a transição fica ligada', () => {
     renderSheet();
 

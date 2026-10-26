@@ -15,14 +15,16 @@ export interface GetApiOptions {
  */
 export function getApi({ clientIp, token }: GetApiOptions = {}): ApiClient {
   const env = getEnv();
-  const client = createApiClient({ baseUrl: env.API_URL, token });
 
-  client.use({
-    onRequest({ request }) {
+  return createApiClient({
+    baseUrl: env.API_URL,
+    token,
+    // Headers set here, not in a middleware: openapi-fetch gives each middleware
+    // call a Math.random() id, which Cache Components flags while prerendering (T177).
+    fetch: (request) => {
       request.headers.set('X-Internal-Token', env.INTERNAL_API_TOKEN);
       if (clientIp) request.headers.set('X-Client-IP', clientIp);
+      return globalThis.fetch(request);
     },
   });
-
-  return client;
 }

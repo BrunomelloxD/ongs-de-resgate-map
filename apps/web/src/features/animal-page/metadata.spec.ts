@@ -1,4 +1,4 @@
-import { animalMetadata, animalPath } from './metadata';
+import { animalMetadata, animalPath, animalShare } from './metadata';
 import { makeAnimal } from './test-fixtures';
 
 const ID = '1d6a7c2e-3b4f-4a5d-9e8f-7a6b5c4d3e2f';
@@ -43,6 +43,24 @@ describe('animalMetadata', () => {
   it('animalPath monta /ong/{slug}/animais/{id}', () => {
     expect(animalPath('patas-do-bairro', ID)).toBe(
       `/ong/patas-do-bairro/animais/${ID}`,
+    );
+  });
+});
+
+describe('animalShare', () => {
+  it('SHARE-01: título, texto e URL canônica do animal', () => {
+    const animal = makeAnimal();
+
+    expect(animalShare(animal)).toEqual({
+      title: 'Caramelo · Patas do Bairro',
+      text: animal.description,
+      url: URL_,
+    });
+  });
+
+  it('sem descrição → o texto padrão', () => {
+    expect(animalShare(makeAnimal({ description: null })).text).toBe(
+      'Conheça Caramelo, da Patas do Bairro, no Animal Helper.',
     );
   });
 });

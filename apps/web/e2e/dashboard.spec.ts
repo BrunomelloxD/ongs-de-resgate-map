@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { dashboardDictionary as t } from '../src/features/dashboard/dashboard.dictionary';
+import { ngoAccountDictionary } from '../src/features/ngo-account/ngo-account.dictionary';
 import { seriousAxeViolations } from './axe';
 import { LoginPage } from './pages/auth.page';
 import { DashboardPage } from './pages/dashboard.page';
@@ -122,6 +123,34 @@ test('DASH-01 a 07/AUTH-05/07: primeiro acesso, toggle com sucesso e falha, busc
   await page.waitForURL('**/entrar');
   await dashboard.goto();
   await expect(page).toHaveURL(/\/entrar$/);
+});
+
+test('PROF-01/A11Y-02: o cabeçalho do painel abre o perfil, e "Voltar para o painel" volta', async ({
+  page,
+}) => {
+  const login = new LoginPage(page);
+  const dashboard = new DashboardPage(page);
+  await login.goto();
+  await login.login(ngo.email, ngo.password);
+  await page.waitForURL('**/painel');
+
+  await dashboard.openMenu();
+  const box = await dashboard.profileLink.boundingBox();
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  // Keyboard: at 390 px the dev indicator of Next can cover a link.
+  await dashboard.profileLink.press('Enter');
+  await page.waitForURL('**/painel/perfil');
+  await expect(
+    page.getByRole('heading', { name: ngoAccountDictionary.profile.title }),
+  ).toBeVisible();
+
+  await page
+    .getByRole('link', { name: ngoAccountDictionary.page.back })
+    .press('Enter');
+  await page.waitForURL(/\/painel$/);
+  await dashboard.openMenu();
+  await expect(dashboard.profileLink).toBeVisible();
 });
 
 test('AUTH-07 (borda): a ONG apagada com a sessão aberta volta para /entrar', async ({

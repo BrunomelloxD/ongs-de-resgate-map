@@ -1,3 +1,5 @@
+import { NGO_FIELD_MESSAGES } from '@/lib/ngo-field-messages';
+
 // Texts of the signup wizard (.specs/front/previews/07-*). The spec fixes the messages of
 // SIGN-04, SIGN-05, SIGN-10, SIGN-16, SIGN-25, the shortcuts of SIGN-12 and the counter of SIGN-07.
 export const signupDictionary = {
@@ -8,28 +10,18 @@ export const signupDictionary = {
     back: 'Voltar',
     errorTitle: 'Não conseguimos abrir o cadastro.',
     retry: 'Tentar novamente',
+    // Green panel of the wizard on desktop (07a–07e).
+    panelTitle: 'Cadastre sua ONG',
+    panelText:
+      'Leva uns 5 minutos. Depois você já pode cadastrar os animais disponíveis.',
+    hasAccount: 'Já tem conta?',
+    login: 'Entrar',
   },
   validation: {
     cnpjInvalid:
       'CNPJ inválido. Confira os 14 caracteres: os dois últimos são dígitos verificadores.',
-    closingBeforeOpening:
-      'O horário de fechamento deve ser depois da abertura.',
-    // SPEC_DEVIATION: the spec asks for "erro no campo" without the text (SIGN-06, SIGN-08,
-    // SIGN-11, SIGN-14, SIGN-22, SIGN-27, DEMO-03 and the address fields); simplest texts.
-    legalNameRequired: 'Informe a razão social.',
-    legalNameTooLong: 'A razão social pode ter até 150 caracteres.',
-    descriptionLength: 'A descrição precisa ter de 30 a 600 caracteres.',
-    emailInvalid: 'Informe um e-mail válido, como nome@ong.org.',
-    whatsappInvalid: 'Informe o WhatsApp com DDD, como (11) 98765-4321.',
-    cepInvalid: 'Digite os 8 números do CEP.',
-    street: 'Informe o logradouro (até 150 caracteres).',
-    number: 'Informe o número (até 10 caracteres).',
-    complement: 'O complemento pode ter até 60 caracteres.',
-    district: 'Informe o bairro (até 80 caracteres).',
-    city: 'Informe a cidade (até 80 caracteres).',
-    uf: 'Escolha a UF.',
-    locationNotConfirmed: 'Confirme a localização no mapa para continuar.',
-    hoursFormat: 'Informe a abertura e o fechamento no formato HH:MM.',
+    ...NGO_FIELD_MESSAGES,
+    // SPEC_DEVIATION: the spec asks for "erro no campo" without the text (SIGN-27, DEMO-03).
     termsRequired:
       'Aceite os Termos de uso e a Política de privacidade para criar a conta.',
     demoRequired: 'Marque que você entendeu que esta é uma demonstração.',

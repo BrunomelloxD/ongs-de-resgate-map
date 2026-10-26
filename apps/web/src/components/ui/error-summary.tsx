@@ -23,28 +23,35 @@ export function ErrorSummary({ title, errors, className }: ErrorSummaryProps) {
   const titleId = useId();
   if (errors.length === 0) return null;
 
+  // Design System "Alert/Erro": soft red, no border, icon and title (A11Y-05).
   return (
     <section
       data-slot="error-summary"
       aria-labelledby={titleId}
       tabIndex={-1}
-      className={cn(
-        'rounded-2xl border border-error bg-error-soft p-4 text-error-fg',
-        className,
-      )}
+      className={cn('flex gap-3 rounded-[1rem] bg-error-soft p-4', className)}
     >
-      <h2 id={titleId} className="font-heading text-lg font-bold">
-        {title}
-      </h2>
-      <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
-        {errors.map((error) => (
-          <li key={error.fieldId}>
-            <a href={`#${error.fieldId}`} className="font-semibold underline">
-              {error.message}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <CircleAlert
+        aria-hidden="true"
+        className="mt-0.5 size-6 shrink-0 text-error-fg"
+      />
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <h2
+          id={titleId}
+          className="font-sans text-base font-bold text-error-fg"
+        >
+          {title}
+        </h2>
+        <ul className="flex flex-col gap-1 text-sm text-fg">
+          {errors.map((error) => (
+            <li key={error.fieldId}>
+              <a href={`#${error.fieldId}`} className="underline">
+                {error.message}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -63,7 +70,7 @@ export function FieldError({ id, children, className }: FieldErrorProps) {
       id={id}
       data-slot="field-error"
       className={cn(
-        'flex items-start gap-1.5 text-sm font-semibold text-error-fg',
+        'flex items-start gap-1.5 text-sm text-error-fg',
         className,
       )}
     >

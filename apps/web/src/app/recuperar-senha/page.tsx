@@ -4,6 +4,14 @@ import {
   ForgotPasswordForm,
   requestPasswordReset,
 } from '@/features/auth';
+import { AuthShell } from '@/components/ui/auth-shell';
+
+// Figcraft photo of this screen, as a WebP in public/ (PERF-02).
+const RECOVER_PHOTO = {
+  src: '/photos/recover-cat.webp',
+  width: 600,
+  height: 780,
+};
 
 export const metadata: Metadata = {
   title: authDictionary.forgot.metaTitle,
@@ -12,8 +20,12 @@ export const metadata: Metadata = {
 // Static shell: nothing here depends on the request.
 export default function ForgotPasswordRoute() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6 text-fg">
+    <AuthShell
+      variant="login"
+      photo={RECOVER_PHOTO}
+      phrase={authDictionary.panelPhrase}
+    >
       <ForgotPasswordForm action={requestPasswordReset} />
-    </main>
+    </AuthShell>
   );
 }

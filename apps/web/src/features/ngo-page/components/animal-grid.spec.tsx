@@ -23,6 +23,7 @@ function setup(props: Partial<AnimalGridProps> = {}) {
       page={pageOf(2)}
       hasAnimals
       whatsappUrl={WHATSAPP}
+      ngoName="Patas do Bairro"
       filters={<p>filtros</p>}
       animalHref={(id) => `/ong/patas/animais/${id}`}
       pageHref={(page) => `/ong/patas?page=${page}`}
@@ -47,13 +48,49 @@ describe('AnimalGrid', () => {
   it('NGO-08: ONG sem animais → convite para o WhatsApp, sem filtros', () => {
     setup({ hasAnimals: false, page: pageOf(0) });
 
+    // T189 (O-07): the figcraft's texts.
     expect(
-      screen.getByRole('heading', { name: 'Nenhum animal cadastrado ainda' }),
+      screen.getByRole('heading', {
+        name: 'A Patas do Bairro ainda não cadastrou animais',
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Falar com a ONG no WhatsApp' }),
+      screen.getByRole('link', { name: 'Perguntar no WhatsApp' }),
     ).toHaveAttribute('href', WHATSAPP);
     expect(screen.queryByText('filtros')).not.toBeInTheDocument();
+  });
+
+  it('O-07: o convite fica num cartão centralizado, com o coração em pino e o botão pequeno outline', () => {
+    const { container } = setup({ hasAnimals: false, page: pageOf(0) });
+
+    expect(
+      container.querySelector('[data-slot="empty-state"]'),
+    ).toHaveAttribute('data-layout', 'card');
+    expect(
+      screen.getByRole('link', { name: 'Perguntar no WhatsApp' }).className,
+    ).toContain('border-fg');
+  });
+
+  it('O-05: o subtítulo conta os animais e os disponíveis', () => {
+    setup({ counts: { total: 12, available: 9 } });
+    expect(
+      screen.getByText('12 animais · 9 disponíveis agora'),
+    ).toBeInTheDocument();
+  });
+
+  it('O-05: no singular, "1 animal · 1 disponível agora"; sem animais, sem contagem', () => {
+    const { unmount } = setup({ counts: { total: 1, available: 1 } });
+    expect(
+      screen.getByText('1 animal · 1 disponível agora'),
+    ).toBeInTheDocument();
+    unmount();
+
+    setup({
+      hasAnimals: false,
+      page: pageOf(0),
+      counts: { total: 0, available: 0 },
+    });
+    expect(screen.queryByText(/disponíve/)).not.toBeInTheDocument();
   });
 
   it('NGO-09: filtros sem resultado → "Nenhum animal com esses filtros." e "Limpar filtros"', () => {

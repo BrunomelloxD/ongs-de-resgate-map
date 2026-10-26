@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatDistance } from '@/lib/format';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { NgoSearchStatus } from '../hooks/use-ngo-search';
 import { mapDictionary as t } from '../map.dictionary';
@@ -12,10 +13,7 @@ import { NgoThumb, todayHoursText } from './ngo-preview-card';
 
 export const SKELETON_ROWS = 4;
 
-const PRIMARY =
-  'touch-target inline-flex items-center justify-center rounded-full bg-brand px-6 py-3 font-semibold text-on-brand';
-const SECONDARY =
-  'touch-target inline-flex items-center justify-center rounded-full border-2 border-fg px-6 py-3 font-semibold text-fg';
+const SECONDARY = buttonVariants({ variant: 'outline' });
 
 export interface NgoListProps {
   status: NgoSearchStatus;
@@ -34,6 +32,8 @@ export interface NgoListProps {
   onClearFilters: () => void;
   /** Where "Buscar outra cidade" goes (MAP-13). */
   otherCityHref: string;
+  /** The filters, between the title and the NGOs (figcraft 03-mapa-*). */
+  filters?: React.ReactNode;
   className?: string;
 }
 
@@ -50,6 +50,7 @@ export function NgoList({
   onWiden,
   onClearFilters,
   otherCityHref,
+  filters,
   className,
 }: NgoListProps) {
   const box = cn('flex flex-col gap-4 text-fg', className);
@@ -57,9 +58,12 @@ export function NgoList({
   if (status === 'loading') {
     return (
       <div data-slot="ngo-list" className={box}>
-        <p role="status" className="font-heading text-xl font-bold">
-          {t.list.loading}
-        </p>
+        <div>
+          <p role="status" className="font-heading text-2xl font-extrabold">
+            {t.list.loading}
+          </p>
+          <p className="text-sm text-fg-secondary">{t.list.loadingHint}</p>
+        </div>
         <ul aria-hidden="true" className="flex flex-col gap-3">
           {Array.from({ length: SKELETON_ROWS }, (_, i) => (
             <li key={i} className="flex gap-4 rounded-3xl bg-surface p-3">
@@ -83,9 +87,9 @@ export function NgoList({
           <p role="alert" className="font-heading text-xl font-bold">
             {t.list.error.title}
           </p>
-          <button type="button" className={PRIMARY} onClick={onRetry}>
+          <Button type="button" onClick={onRetry}>
             {t.list.error.retry}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -99,30 +103,31 @@ export function NgoList({
             title={t.list.emptyFiltered.title}
             description={t.list.emptyFiltered.description}
             actions={[
-              <button
+              <Button
                 key="clear"
                 type="button"
-                className={PRIMARY}
+
                 onClick={onClearFilters}
               >
                 {t.list.emptyFiltered.clear}
-              </button>,
+              </Button>,
             ]}
           />
         ) : (
           <EmptyState
             title={t.list.empty.title}
             description={t.list.empty.description}
+            illustration={<Search />}
             actions={[
               onWiden ? (
-                <button
+                <Button
                   key="widen"
                   type="button"
-                  className={PRIMARY}
+
                   onClick={onWiden}
                 >
                   {t.list.empty.widen}
-                </button>
+                </Button>
               ) : null,
               <Link key="city" href={otherCityHref} className={SECONDARY}>
                 {t.list.empty.otherCity}
@@ -142,6 +147,7 @@ export function NgoList({
         </h2>
         <p className="text-sm text-fg-secondary">{t.list.radius(radiusKm)}</p>
       </div>
+      {filters}
       {truncated && (
         <p className="rounded-2xl bg-subtle p-3 text-sm font-semibold">
           {t.list.truncated}

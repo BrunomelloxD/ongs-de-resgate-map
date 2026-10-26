@@ -61,6 +61,17 @@ describe('Switch', () => {
     expect(toggle).toHaveAttribute('aria-checked', 'false');
   });
 
+  it('trilho do Design System: cinza desligado, verde ligado, bolinha branca', () => {
+    const { container } = render(<Switch aria-label={LABEL} />);
+    const track = container.querySelector('[data-slot="switch"] > span')!;
+
+    expect(track.className).toContain('bg-switch-off');
+    expect(track.className).toContain(
+      'group-data-[checked]/switch:bg-available',
+    );
+    expect(track.firstElementChild!.className).toContain('bg-white');
+  });
+
   it('o alvo de toque tem 44px', () => {
     render(<Switch aria-label={LABEL} className="extra" />);
     const toggle = screen.getByRole('switch');

@@ -70,7 +70,7 @@ export function HoursFields({
         type="button"
         variant="outline"
         onClick={copyMonday}
-        className="self-start rounded-full px-4 font-semibold whitespace-normal"
+        className="self-start whitespace-normal"
       >
         {t.copyMonday}
       </Button>
@@ -95,7 +95,8 @@ export function HoursFields({
               onChange={(e) => update(dayOfWeek, { [field]: e.target.value })}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? errorId : undefined}
-              className="w-32"
+              // C-21: as narrow as the "09:00" it shows (24 h in a pt-BR browser).
+              className="w-auto field-sizing-content"
             />
           </div>
         );

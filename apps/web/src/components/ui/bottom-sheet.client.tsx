@@ -18,6 +18,10 @@ export interface BottomSheetProps {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** How much shows when collapsed, handle included (any CSS length). */
+  collapsedHeight?: string;
+  /** Open, the sheet reaches this far from the top of its container (e.g. under a search bar). */
+  openTop?: string;
   className?: string;
 }
 
@@ -29,6 +33,8 @@ export function BottomSheet({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
+  collapsedHeight = '9rem',
+  openTop,
   className,
 }: BottomSheetProps) {
   const contentId = useId();
@@ -66,9 +72,16 @@ export function BottomSheet({
       data-slot="bottom-sheet"
       data-state={open ? 'open' : 'collapsed'}
       aria-label={label}
+      style={
+        {
+          '--sheet-peek': collapsedHeight,
+          top: openTop,
+        } as React.CSSProperties
+      }
       className={cn(
-        'absolute inset-x-0 bottom-0 z-[1000] flex max-h-[85dvh] flex-col rounded-t-sheet bg-page shadow-card',
-        open ? 'translate-y-0' : 'translate-y-[calc(100%-9rem)]',
+        'absolute inset-x-0 bottom-0 z-[1000] flex flex-col rounded-t-sheet bg-page shadow-card',
+        !openTop && 'max-h-[85dvh]',
+        open ? 'translate-y-0' : 'translate-y-[calc(100%-var(--sheet-peek))]',
         !reducedMotion && 'transition-transform duration-300 ease-out',
         className,
       )}

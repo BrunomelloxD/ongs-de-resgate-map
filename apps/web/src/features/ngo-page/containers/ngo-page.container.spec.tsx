@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import type { AnimalGridProps } from '../components/animal-grid';
+import type { NgoCoverProps } from '../components/ngo-cover';
 import type { NgoProfileProps } from '../components/ngo-profile';
 import type { NgoMiniMapProps } from '../ngo-mini-map.client';
 import { makeNgo, makeNgoAnimal } from '../test-fixtures';
@@ -31,6 +32,19 @@ vi.mock('../components/ngo-profile', () => ({
     </div>
   ),
 }));
+// T189 (C-25): "Compartilhar" floats on the cover now.
+vi.mock('../components/ngo-cover', () => ({
+  NgoCover: ({ share, backHref }: NgoCoverProps) => (
+    <div>
+      capa {backHref}
+      {share && (
+        <p>
+          compartilha {share.title} | {share.text} | {share.url}
+        </p>
+      )}
+    </div>
+  ),
+}));
 vi.mock('../components/animal-grid', () => ({
   AnimalGrid: (props: AnimalGridProps) => {
     grid.props = props;
@@ -49,6 +63,19 @@ const PAGE = {
 };
 
 describe('NgoPageContainer', () => {
+  it('SHARE-01: a capa recebe o "Compartilhar" com título, texto e URL canônica da ONG', async () => {
+    getNgoAnimals.mockResolvedValue(PAGE);
+    const ngo = makeNgo();
+
+    render(await NgoPageContainer({ ngo, searchParams: Promise.resolve({}) }));
+
+    expect(
+      screen.getByText(
+        `compartilha Patas do Bairro | ${ngo.description} | http://web.test/ong/patas-do-bairro`,
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('NGO-05/06/10: lê filtros e página da URL e pede os animais', async () => {
     getNgoAnimals.mockResolvedValue(PAGE);
 
@@ -95,6 +122,51 @@ describe('NgoPageContainer', () => {
       '/ong/patas-do-bairro?species=CAT&available=false&page=3',
     );
     expect(grid.props.clearHref).toBe('/ong/patas-do-bairro');
+  });
+
+  it('O-05: pede o total e os disponíveis junto com a página e passa a contagem à grade', async () => {
+    getNgoAnimals.mockImplementation(
+      async (_slug: string, filters: { available?: boolean }) => ({
+        ...PAGE,
+        meta: { ...PAGE.meta, total: filters.available === false ? 12 : 9 },
+      }),
+    );
+
+    render(
+      await NgoPageContainer({
+        ngo: makeNgo(),
+        searchParams: Promise.resolve({ species: 'CAT' }),
+      }),
+    );
+
+    expect(getNgoAnimals).toHaveBeenCalledWith(
+      'patas-do-bairro',
+      { available: false },
+      1,
+    );
+    expect(getNgoAnimals).toHaveBeenCalledWith(
+      'patas-do-bairro',
+      { available: true },
+      1,
+    );
+    expect(grid.props.counts).toEqual({ total: 12, available: 9 });
+    expect(grid.props.ngoName).toBe('Patas do Bairro');
+    expect(screen.getByText('capa /')).toBeInTheDocument();
+  });
+
+  it('O-05: ONG sem animais não pede a contagem', async () => {
+    getNgoAnimals.mockReset();
+    getNgoAnimals.mockResolvedValue(PAGE);
+
+    render(
+      await NgoPageContainer({
+        ngo: makeNgo({ hasAnimals: false }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(getNgoAnimals).toHaveBeenCalledTimes(1);
+    expect(grid.props.counts).toBeUndefined();
   });
 
   it('a ONG saiu entre as duas chamadas (404) → só o perfil', async () => {

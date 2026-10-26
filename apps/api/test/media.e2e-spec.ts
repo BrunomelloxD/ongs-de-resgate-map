@@ -90,7 +90,7 @@ describe('Media (e2e)', () => {
   }
 
   describe('POST /api/v1/me/images', () => {
-    it('JPG com GPS → 201 e 2 variantes WebP sem EXIF, pendente no banco (SEC-07, AFORM-12)', async () => {
+    it('JPG com GPS → 201 e 3 variantes WebP (160, 600 e 1200) sem EXIF, pendente no banco (SEC-07, AFORM-12, T174)', async () => {
       const input = await readFile(join(FIXTURES, 'photo-gps.jpg'));
 
       const res = await upload(input).expect(201);
@@ -103,7 +103,11 @@ describe('Media (e2e)', () => {
         height: expect.any(Number),
       });
       const keys = storage.keys().filter((key) => key.startsWith(prefix));
-      expect(keys).toEqual([`${prefix}-1200.webp`, `${prefix}-160.webp`]);
+      expect(keys).toEqual([
+        `${prefix}-1200.webp`,
+        `${prefix}-160.webp`,
+        `${prefix}-600.webp`,
+      ]);
       for (const key of keys) {
         const body = Buffer.concat(
           await (await storage.getStream(key)).toArray(),
@@ -239,8 +243,29 @@ describe('Media (e2e)', () => {
 
     it('chave válida com variante inexistente → 404', async () => {
       await apiClient(app)
-        .get(`/api/v1/media/${saved.prefix}-600.webp`)
+        .get(`/api/v1/media/${saved.prefix}-400.webp`)
         .expect(404);
+    });
+
+    it('T174: foto antiga, sem a variante de 600 no bucket, responde 200 com a de 1200', async () => {
+      const large = Buffer.concat(
+        await (await storage.getStream(`${saved.prefix}-1200.webp`)).toArray(),
+      );
+      // A photo uploaded before T174 has only 160 and 1200.
+      await storage.deleteKeys([`${saved.prefix}-600.webp`]);
+
+      const res = await apiClient(app)
+        .get(`/api/v1/media/${saved.prefix}-600.webp`)
+        .buffer(true)
+        .parse((response, done) => {
+          const chunks: Buffer[] = [];
+          response.on('data', (chunk: Buffer) => chunks.push(chunk));
+          response.on('end', () => done(null, Buffer.concat(chunks)));
+        })
+        .expect(200);
+
+      expect(res.headers['content-type']).toBe('image/webp');
+      expect(Buffer.compare(res.body as Buffer, large)).toBe(0);
     });
   });
 });

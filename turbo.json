@@ -10,6 +10,17 @@
       "dependsOn": ["^build", "^generate", "generate"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
+    "build:no-env": {
+      "dependsOn": [
+        "^build",
+        "^generate",
+        "generate",
+        "build",
+        "lint",
+        "typecheck"
+      ],
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^generate", "generate"]
     },

@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { cn } from '@/lib/utils';
 
 // SPEC_DEVIATION: MAP-03 doesn't name the pins' accessible labels.
@@ -11,26 +12,40 @@ export const PIN_LABELS = {
 
 export type PinVariant = keyof typeof PIN_LABELS;
 
-/** Width and height in px; the tip of the drop (or the circle's centre) is the anchor. */
+/** Width and height in px (figcraft "Pin/*"); the tip of the drop (or the circle's centre) is the anchor. */
 export const PIN_SIZES: Record<PinVariant, readonly [number, number]> = {
-  open: [32, 40],
-  closed: [32, 40],
-  selected: [44, 55],
-  visitor: [24, 24],
+  open: [30, 39],
+  closed: [30, 39],
+  selected: [48, 62],
+  visitor: [44, 44],
 };
 
-const DROP = 'M16 39C16 39 2 24.5 2 15a14 14 0 0 1 28 0c0 9.5-14 24-14 24Z';
+/** The Design System drop, drawn in a 100×130 box and scaled to each size. */
+export const DROP_PATH =
+  'M50 130C50 130 0 80 0 50C0 22.39 22.39 0 50 0C77.61 0 100 22.39 100 50C100 80 50 130 50 130Z';
+
+// Shadow of the figcraft pins: 0 3px 6px Tinta at 25%.
+const SHADOW = 'drop-shadow-[0_3px_6px_rgb(23_36_30/0.25)]';
 
 export interface PinProps {
   variant: PinVariant;
   /** Overrides the default label, e.g. "Patas do Bairro, aberta agora". */
   label?: string;
+  /** NGO photo drawn inside the selected pin; without it, a verde-mata dot. */
+  photoUrl?: string | null;
   className?: string;
 }
 
-/** MAP-03: open, closed, selected and visitor differ by shape, not only by colour. */
-export function Pin({ variant, label, className }: PinProps) {
+/**
+ * MAP-03, figcraft "Pin/*": open is verde-mata with a yellow dot, closed is grey
+ * with a light dot, selected is a bigger yellow drop with the NGO photo, and the
+ * visitor is a blue dot with a halo.
+ */
+export function Pin({ variant, label, photoUrl, className }: PinProps) {
   const [width, height] = PIN_SIZES[variant];
+  // Valid in url(#…) whatever characters useId() uses.
+  const clipId = `pin-${useId().replace(/[^\w-]/g, '')}`;
+  const visitor = variant === 'visitor';
 
   return (
     <svg
@@ -40,54 +55,52 @@ export function Pin({ variant, label, className }: PinProps) {
       data-variant={variant}
       width={width}
       height={height}
-      viewBox={variant === 'visitor' ? '0 0 24 24' : '0 0 32 40'}
-      className={cn('block overflow-visible drop-shadow-md', className)}
+      viewBox={visitor ? '0 0 44 44' : '0 0 100 130'}
+      className={cn('block overflow-visible', !visitor && SHADOW, className)}
     >
-      {variant === 'visitor' && (
+      {visitor && (
         <>
-          <circle cx="12" cy="12" r="11" className="fill-brand-deep/25" />
-          <circle
-            cx="12"
-            cy="12"
-            r="6.5"
-            strokeWidth="3"
-            className="fill-brand-deep stroke-surface"
-          />
+          <circle cx="22" cy="22" r="22" className="fill-visitor/20" />
+          <circle cx="22" cy="22" r="10" className="fill-white" />
+          <circle cx="22" cy="22" r="7" className="fill-visitor" />
         </>
       )}
       {variant === 'open' && (
         <>
-          <path
-            d={DROP}
-            strokeWidth="2"
-            className="fill-brand-deep stroke-surface"
-          />
-          <circle cx="16" cy="15" r="5.5" className="fill-brand" />
+          <path d={DROP_PATH} className="fill-pin-open" />
+          <circle cx="50" cy="50" r="19" className="fill-brand" />
         </>
       )}
       {variant === 'closed' && (
         <>
-          <path
-            d={DROP}
-            strokeWidth="2"
-            className="fill-surface stroke-fg-muted"
-          />
-          <path
-            d="M12 11l8 8M20 11l-8 8"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            className="stroke-fg-muted"
-          />
+          <path d={DROP_PATH} className="fill-pin-closed" />
+          <circle cx="50" cy="50" r="19" className="fill-pin-closed-dot" />
         </>
       )}
       {variant === 'selected' && (
         <>
-          <path
-            d={DROP}
-            strokeWidth="2.5"
-            className="fill-brand stroke-brand-deep"
-          />
-          <circle cx="16" cy="15" r="6" className="fill-brand-deep" />
+          <path d={DROP_PATH} className="fill-brand" />
+          {photoUrl ? (
+            <>
+              <clipPath id={clipId}>
+                <path
+                  d={DROP_PATH}
+                  transform="translate(8.333 8.333) scale(0.8333)"
+                />
+              </clipPath>
+              <image
+                href={photoUrl}
+                x="8.333"
+                y="8.333"
+                width="83.333"
+                height="108.333"
+                preserveAspectRatio="xMidYMid slice"
+                clipPath={`url(#${clipId})`}
+              />
+            </>
+          ) : (
+            <circle cx="50" cy="50" r="19" className="fill-pin-open" />
+          )}
         </>
       )}
     </svg>

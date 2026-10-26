@@ -618,7 +618,8 @@ describe('MediaService.deletePendingOlderThan', () => {
 
     const result = await service.deletePendingOlderThan(24);
 
-    expect(result).toEqual({ count: 4, bytes: 750 });
+    // 3 variants per photo (160, 600 and 1200, T174).
+    expect(result).toEqual({ count: 6, bytes: 750 });
     expect(repository.findPendingOlderThan).toHaveBeenCalledWith(
       new Date('2026-10-20T12:00:00.000Z'),
     );
@@ -761,7 +762,7 @@ describe('MediaService.getPublicImage', () => {
     return Buffer.concat(chunks).toString();
   }
 
-  it.each([160, 1200])(
+  it.each([160, 600, 1200])(
     'foto salva de ONG ACTIVE, variante %i → stream do bucket (PERF-02)',
     async (size) => {
       const { service, repository, storage } = setup({ publicImage: SAVED });
@@ -818,7 +819,7 @@ describe('MediaService.getPublicImage', () => {
     'ngos/x/images/y-160.webp',
     `${SAVED.keyPrefix}-160.png`,
     `${SAVED.keyPrefix}.webp`,
-    `${SAVED.keyPrefix}-600.webp`,
+    `${SAVED.keyPrefix}-400.webp`,
     `${LOGO}-1200.webp`,
     `ngos/${NGO_ID}/outros/${SAVED.id}-160.webp`,
     `../ngos/${NGO_ID}/images/${SAVED.id}-160.webp`,
@@ -833,6 +834,38 @@ describe('MediaService.getPublicImage', () => {
     expect(error.status).toBe(404);
     expect(repository.findPublicByKeyPrefix).not.toHaveBeenCalled();
     expect(repository.hasPublicNgoImage).not.toHaveBeenCalled();
+  });
+
+  it('T174: foto antiga, sem a variante de 600, recebe a de 1200 no lugar (sem 404)', async () => {
+    const { service, storage } = setup({ publicImage: SAVED });
+    await storage.put(
+      `${SAVED.keyPrefix}-1200.webp`,
+      Buffer.from('v1200'),
+      'x',
+    );
+
+    const stream = await service.getPublicImage(`${SAVED.keyPrefix}-600.webp`);
+
+    expect(await body(stream)).toBe('v1200');
+  });
+
+  it('foto sem a de 600 nem a de 1200 no bucket → 404', async () => {
+    const { service } = setup({ publicImage: SAVED });
+
+    const error = await httpError(
+      service.getPublicImage(`${SAVED.keyPrefix}-600.webp`),
+    );
+
+    expect(error.status).toBe(404);
+  });
+
+  it('imagem da ONG sem o objeto de 600 → 404, sem trocar de variante', async () => {
+    const { service, storage } = setup({ publicNgoImage: true });
+    await storage.put(`${LOGO}-160.webp`, Buffer.from('logo'), 'x');
+
+    const error = await httpError(service.getPublicImage(`${LOGO}-600.webp`));
+
+    expect(error.status).toBe(404);
   });
 
   it('linha confirmada sem o objeto no bucket → 404', async () => {

@@ -35,13 +35,13 @@ const NGO = {
 };
 
 describe('/painel', () => {
-  it('DASH-01/DEMO-06/AUTH-05: compõe cabeçalho com "Sair", aviso de expiração e o container', async () => {
+  // T184: the header with "Sair" moved to the /painel layout (layout.spec.tsx).
+  it('DASH-01/DEMO-06: compõe o aviso de expiração e o container', async () => {
     getMyNgo.mockResolvedValue(NGO);
 
     render(await DashboardRoute());
 
     const main = screen.getByRole('main');
-    expect(main).toHaveTextContent('cabeçalho Patas do Bairro com logout');
     expect(main).toHaveTextContent('aviso 2026-10-27T12:00:00.000Z');
     expect(main).toHaveTextContent('container Patas do Bairro');
   });

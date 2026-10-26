@@ -42,23 +42,6 @@ describe('HomeHero', () => {
     ).toHaveAttribute('href', '/localizacao');
   });
 
-  it('HOME-03: o link "Sou uma ONG" leva a /entrar', () => {
-    render(<HomeHero />);
-
-    expect(screen.getByRole('link', { name: 'Sou uma ONG' })).toHaveAttribute(
-      'href',
-      '/entrar',
-    );
-  });
-
-  it('mantém o botão de tema com os dois rótulos', () => {
-    render(<HomeHero />);
-
-    const toggle = screen.getByRole('button', { name: /Usar tema escuro/ });
-    expect(toggle).toHaveTextContent('Usar tema escuro');
-    expect(toggle).toHaveTextContent('Usar tema claro');
-  });
-
   it('HOME-02: nem abrir a página nem tocar no CTA chamam navigator.geolocation', async () => {
     render(<HomeHero />);
 
@@ -68,5 +51,28 @@ describe('HomeHero', () => {
 
     expect(geolocation.getCurrentPosition).not.toHaveBeenCalled();
     expect(geolocation.watchPosition).not.toHaveBeenCalled();
+  });
+  it('PROF-08: mostra o aviso recebido acima do título', () => {
+    render(<HomeHero notice={<p role="status">Conta excluída.</p>} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Conta excluída.');
+  });
+});
+
+describe('HomeHero, figcraft 01', () => {
+  it('H-01/H-02/H-04: hero com as fotos, "Como funciona" e o bloco para ONGs, nessa ordem', () => {
+    const { container } = render(<HomeHero />);
+    const art = container.querySelector('[data-slot="hero-art"]')!;
+    const title = screen.getByRole('heading', { level: 1 });
+    const how = screen.getByRole('region', { name: 'Como funciona' });
+    const forNgos = screen.getByRole('region', {
+      name: 'Você cuida de animais resgatados?',
+    });
+
+    const follows = (a: Node, b: Node) =>
+      a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING;
+    expect(follows(art, title)).toBeTruthy();
+    expect(follows(title, how)).toBeTruthy();
+    expect(follows(how, forNgos)).toBeTruthy();
   });
 });

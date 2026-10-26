@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { LoginState } from '../auth.types';
 import { LoginForm } from './login-form.client';
@@ -67,7 +67,7 @@ describe('LoginForm', () => {
         name: 'E-mail ou senha incorretos.',
       }),
     ).toHaveAttribute('href', '#login-email');
-    expect(screen.getByLabelText('E-mail')).toHaveFocus();
+    await waitFor(() => expect(screen.getByLabelText('E-mail')).toHaveFocus());
     expect(screen.getByLabelText('E-mail')).toHaveValue('contato@patas.org');
     expect(screen.getByLabelText('E-mail')).toHaveAttribute(
       'aria-invalid',
@@ -93,7 +93,7 @@ describe('LoginForm', () => {
     expect(
       within(summary).getByRole('link', { name: 'Informe a senha.' }),
     ).toHaveAttribute('href', '#login-password');
-    expect(screen.getByLabelText('Senha')).toHaveFocus();
+    await waitFor(() => expect(screen.getByLabelText('Senha')).toHaveFocus());
     expect(screen.getByLabelText('Senha')).toHaveAccessibleDescription(
       'Informe a senha.',
     );
@@ -112,7 +112,7 @@ describe('LoginForm', () => {
     expect(screen.getByLabelText('E-mail')).toHaveAccessibleDescription(
       'Informe um e-mail válido, como nome@ong.org.',
     );
-    expect(screen.getByLabelText('E-mail')).toHaveFocus();
+    await waitFor(() => expect(screen.getByLabelText('E-mail')).toHaveFocus());
   });
 
   it('enquanto envia, o botão fica desabilitado', async () => {

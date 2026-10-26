@@ -32,6 +32,7 @@
   --color-brand-deep: var(--brand-deep);
   --color-brand-deep-pressed: var(--brand-deep-pressed);
   --color-on-brand-deep: var(--text-on-brand-deep);
+  --color-on-brand-deep-soft: var(--text-on-brand-deep-soft);
   --color-focus: var(--focus-ring);
   --color-gem-soft: var(--gem-soft);
   --color-gem-soft-fg: var(--gem-soft-text);
@@ -42,6 +43,17 @@
   --color-error-soft: var(--error-soft);
   --color-error-fg: var(--error-text);
   --color-online: var(--status-online);
+  --color-danger: var(--danger);
+  --color-on-danger: var(--text-on-danger);
+  --color-fg-disabled: var(--text-disabled);
+  --color-switch-off: var(--switch-off);
+  --color-visitor: var(--visitor);
+  --color-whatsapp: var(--whatsapp);
+  --color-whatsapp-pressed: var(--whatsapp-pressed);
+  --color-on-whatsapp: var(--text-on-whatsapp);
+  --color-pin-open: var(--pin-open);
+  --color-pin-closed: var(--pin-closed);
+  --color-pin-closed-dot: var(--pin-closed-dot);
   --color-avatar-pink-bg: var(--avatar-pink-bg);
   --color-avatar-pink-fg: var(--avatar-pink-fg);
   --color-avatar-green-bg: var(--avatar-green-bg);
@@ -90,6 +102,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
   --radius-card: var(--radius-card);
   --radius-sheet: var(--radius-sheet);
+  --radius-field: var(--radius-field);
 }
 
 :root {
@@ -120,6 +133,7 @@
   --focus-ring: #1f4d3a;
   --text-on-brand: #17241e;
   --text-on-brand-deep: #ffffff;
+  --text-on-brand-deep-soft: #dce7e0;
   --gem-soft: #fcebc0;
   --gem-soft-text: #17241e;
   --available: #2e7d4f;
@@ -129,6 +143,19 @@
   --error-soft: #f6deda;
   --error-text: #9e2f25;
   --status-online: #10b981;
+  --danger: #b83a2e;
+  --text-on-danger: #ffffff;
+  --text-disabled: #565c58;
+  --switch-off: #7d8580;
+  --visitor: #2f6fde;
+  /* Button/WhatsApp (C-24): white text at 5.4:1 (A11Y-01). */
+  --whatsapp: #157a43;
+  --whatsapp-pressed: #10603a;
+  --text-on-whatsapp: #ffffff;
+  --pin-open: #1f4d3a;
+  --pin-closed: #5f6964;
+  --pin-closed-dot: #ece8df;
+  --field-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b83a2e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
   --shadow-card: #1118270f;
   --avatar-pink-bg: #fce7f3;
   --avatar-pink-fg: #be185d;
@@ -162,6 +189,7 @@
   --radius: 0.75rem;
   --radius-card: 1.25rem;
   --radius-sheet: 1.5rem;
+  --radius-field: 0.75rem;
   --target-min: 44px;
   --page-gutter: 1rem;
   --sidebar: oklch(0.985 0 0);
@@ -194,6 +222,7 @@
   --focus-ring: #f5b82e;
   --text-on-brand: #17241e;
   --text-on-brand-deep: #ffffff;
+  --text-on-brand-deep-soft: #dce7e0;
   --gem-soft: #3a2e0e;
   --gem-soft-text: #f5b82e;
   --available: #7fd1a0;
@@ -203,6 +232,18 @@
   --error-soft: #3a1814;
   --error-text: #f4a79f;
   --status-online: #34d399;
+  --danger: #b83a2e;
+  --text-on-danger: #ffffff;
+  --text-disabled: #a9b3ac;
+  --switch-off: #7d8580;
+  --visitor: #2f6fde;
+  --whatsapp: #157a43;
+  --whatsapp-pressed: #10603a;
+  --text-on-whatsapp: #ffffff;
+  --pin-open: #1f4d3a;
+  --pin-closed: #5f6964;
+  --pin-closed-dot: #ece8df;
+  --field-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f0847a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
   --shadow-card: #00000066;
   --avatar-pink-bg: #500724;
   --avatar-pink-fg: #f9a8d4;
@@ -231,6 +272,7 @@
     --focus-ring: #f5b82e;
     --text-on-brand: #17241e;
     --text-on-brand-deep: #ffffff;
+    --text-on-brand-deep-soft: #dce7e0;
     --gem-soft: #3a2e0e;
     --gem-soft-text: #f5b82e;
     --available: #7fd1a0;
@@ -240,6 +282,18 @@
     --error-soft: #3a1814;
     --error-text: #f4a79f;
     --status-online: #34d399;
+    --danger: #b83a2e;
+    --text-on-danger: #ffffff;
+    --text-disabled: #a9b3ac;
+    --switch-off: #7d8580;
+    --visitor: #2f6fde;
+    --whatsapp: #157a43;
+    --whatsapp-pressed: #10603a;
+    --text-on-whatsapp: #ffffff;
+    --pin-open: #1f4d3a;
+    --pin-closed: #5f6964;
+    --pin-closed-dot: #ece8df;
+    --field-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f0847a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
     --shadow-card: #00000066;
     --avatar-pink-bg: #500724;
     --avatar-pink-fg: #f9a8d4;
@@ -258,6 +312,31 @@
 @utility touch-target {
   min-height: var(--target-min);
   min-width: var(--target-min);
+}
+
+/* The Design System drop (figcraft "Pin"), as a mask: photos and illustrations cut in a pin. */
+@utility mask-pin {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 130' preserveAspectRatio='none'%3E%3Cpath d='M50 130C50 130 0 80 0 50C0 22.39 22.39 0 50 0C77.61 0 100 22.39 100 50C100 80 50 130 50 130Z'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
+/* Decorative ⓘ inside an invalid field; the text error stays next to it (A11Y-05). */
+@utility field-invalid-icon {
+  background-image: var(--field-error-icon);
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.5rem;
+}
+
+/* The phone's fixed ActionBar: the end of the page scrolls above it (T183). */
+@media (width < 64rem) {
+  body:has([data-slot='action-bar']) {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+  body:has([data-slot='action-bar'][data-hint]) {
+    padding-bottom: calc(8.5rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* Full-width containers only: inside a max-w-* column use px-4 (check:conventions). */

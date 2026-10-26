@@ -44,10 +44,12 @@ describe('LocationPage', () => {
       screen.getByRole('button', { name: 'Buscar pela cidade ou CEP' }),
     );
     await userEvent.type(
-      screen.getByRole('textbox', { name: 'CEP' }),
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
       '01310100',
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Buscar CEP' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Ver ONGs nesta região' }),
+    );
 
     expect(lookupCep).toHaveBeenCalledWith('01310-100');
     await waitFor(() =>

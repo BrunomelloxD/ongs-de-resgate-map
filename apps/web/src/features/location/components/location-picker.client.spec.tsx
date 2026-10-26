@@ -120,9 +120,14 @@ describe('LocationPicker', () => {
       level: 1,
       name: 'Busque pela cidade ou CEP',
     });
-    expect(heading).toHaveFocus();
-    expect(screen.getByRole('combobox', { name: 'Cidade' })).toBeVisible();
-    expect(screen.getByRole('textbox', { name: 'CEP' })).toBeVisible();
+    await waitFor(() => expect(heading).toHaveFocus());
+    expect(
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+    ).toBeVisible();
+    // T186: city and CEP share one field.
+    expect(
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+    ).toHaveAttribute('placeholder', 'Ex.: Campinas ou 13010-000');
   });
 
   it.each([
@@ -140,7 +145,9 @@ describe('LocationPicker', () => {
         'Não encontramos sua localização',
       );
       expect(screen.queryByText(REACTIVATE)).not.toBeInTheDocument();
-      expect(screen.getByRole('combobox', { name: 'Cidade' })).toBeVisible();
+      expect(
+        screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+      ).toBeVisible();
     },
   );
 
@@ -153,7 +160,9 @@ describe('LocationPicker', () => {
       'Não encontramos sua localização',
     );
     expect(screen.queryByText(REACTIVATE)).not.toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Cidade' })).toBeVisible();
+    expect(
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+    ).toBeVisible();
   });
 
   it('LOC-03: "Tentar de novo" chama getCurrentPosition de novo', async () => {
@@ -187,9 +196,12 @@ describe('LocationPicker', () => {
   it('LOC-08: escolher um município navega com as coordenadas dele', async () => {
     const { user, navigate } = setup({ initialPhase: 'manual' });
 
-    await user.type(screen.getByRole('combobox', { name: 'Cidade' }), 'santa');
+    await user.type(
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+      'santa',
+    );
     await user.click(
-      await screen.findByRole('option', { name: 'Santa Cruz, RN' }),
+      await screen.findByRole('option', { name: 'Santa Cruz Cidade · RN' }),
     );
 
     expect(navigate).toHaveBeenCalledWith('/mapa#c=-6.2295,-36.0228&r=5');
@@ -198,11 +210,12 @@ describe('LocationPicker', () => {
   it('LOC-09: CEP válido navega com o ponto do CEP', async () => {
     const { user, navigate, lookupCep } = setup({ initialPhase: 'manual' });
 
-    await user.type(screen.getByRole('textbox', { name: 'CEP' }), '01310100');
-    expect(screen.getByRole('textbox', { name: 'CEP' })).toHaveValue(
-      '01310-100',
+    const field = screen.getByRole('combobox', { name: 'Cidade ou CEP' });
+    await user.type(field, '01310100');
+    expect(field).toHaveValue('01310-100');
+    await user.click(
+      await screen.findByRole('button', { name: 'Ver ONGs nesta região' }),
     );
-    await user.click(screen.getByRole('button', { name: 'Buscar CEP' }));
 
     expect(lookupCep).toHaveBeenCalledWith('01310-100');
     await waitFor(() =>
@@ -217,17 +230,20 @@ describe('LocationPicker', () => {
       initialPhase: 'manual',
       lookupCep: vi.fn(async () => ({ ok: false as const, error: message })),
     });
-    const field = screen.getByRole('textbox', { name: 'CEP' });
+    const field = screen.getByRole('combobox', { name: 'Cidade ou CEP' });
 
     await user.type(field, '00000000');
-    await user.click(screen.getByRole('button', { name: 'Buscar CEP' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Ver ONGs nesta região' }),
+    );
 
     expect(await screen.findByText(message)).toBeVisible();
     expect(field).toHaveAttribute('aria-invalid', 'true');
     expect(field).toHaveAccessibleDescription(message);
     expect(navigate).not.toHaveBeenCalled();
 
-    await user.type(field, '1');
+    // T186: the field holds 8 digits at most, so the edit is a backspace.
+    await user.type(field, '{Backspace}');
     expect(screen.queryByText(message)).not.toBeInTheDocument();
     expect(field).not.toHaveAttribute('aria-invalid');
   });
@@ -239,13 +255,16 @@ describe('LocationPicker', () => {
       lookupCep: () => new Promise((resolve) => (finish = resolve)),
     });
 
-    await user.type(screen.getByRole('textbox', { name: 'CEP' }), '01310100');
-    await user.click(screen.getByRole('button', { name: 'Buscar CEP' }));
+    // T186: the 8th digit starts the lookup; the button waits for it.
+    await user.type(
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+      '01310100',
+    );
 
     expect(screen.getByRole('button', { name: 'Buscando…' })).toBeDisabled();
     finish({ ok: false, error: 'x' });
     expect(
-      await screen.findByRole('button', { name: 'Buscar CEP' }),
+      await screen.findByRole('button', { name: 'Ver ONGs nesta região' }),
     ).toBeEnabled();
   });
 
@@ -258,8 +277,13 @@ describe('LocationPicker', () => {
       })),
     });
 
-    await user.type(screen.getByRole('textbox', { name: 'CEP' }), '01310100');
-    await user.click(screen.getByRole('button', { name: 'Buscar CEP' }));
+    await user.type(
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+      '01310100',
+    );
+    await user.click(
+      await screen.findByRole('button', { name: 'Ver ONGs nesta região' }),
+    );
 
     expect(
       await screen.findByText(
@@ -267,6 +291,51 @@ describe('LocationPicker', () => {
       ),
     ).toBeVisible();
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('L-01: no celular, a ilustração redonda do mapa fica acima de "Onde você está?"; é decorativa', () => {
+    const { container } = render(
+      <LocationPicker
+        geolocation={undefined}
+        lookupCep={vi.fn()}
+        navigate={vi.fn()}
+      />,
+    );
+    const art = container.querySelector('img')!;
+
+    expect(art).toHaveAttribute('src', '/photos/location-map-round.webp');
+    expect(art).toHaveAttribute('alt', '');
+    expect(art).toHaveClass('lg:hidden');
+    expect(
+      art.compareDocumentPosition(
+        screen.getByRole('heading', { name: 'Onde você está?' }),
+      ) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('L-05: a busca manual tem o campo único e o primário "Ver ONGs nesta região"', () => {
+    setup({ initialPhase: 'manual' });
+
+    expect(
+      screen.getByRole('combobox', { name: 'Cidade ou CEP' }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Ver ONGs nesta região' }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('textbox', { name: 'CEP' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('L-07: o texto do desktop diz "clique no cadeado"; o do celular, "toque"', () => {
+    setup({ initialPhase: 'denied' });
+
+    expect(screen.getByText(REACTIVATE)).toHaveClass('lg:hidden');
+    expect(
+      screen.getByText(
+        'Sem problema. Para ativar depois, clique no cadeado ao lado do endereço do site e permita “Localização”.',
+      ),
+    ).toHaveClass('hidden', 'lg:inline');
   });
 
   it('aberto direto num estado de aviso, não rouba o foco', () => {

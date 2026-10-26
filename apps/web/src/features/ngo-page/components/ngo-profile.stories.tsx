@@ -44,3 +44,17 @@ export const Closed: Story = {
 export const WithoutImage: Story = {
   args: { ngo: makeNgo({ imageUrl: null }), miniMap: undefined },
 };
+
+/** C-24, O-03: the WhatsApp green with its logo; "Fecha às" beside the badge. Share moved to NgoCover. */
+export const WhatsAppAndClosing: Story = {
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole('link', { name: 'Falar com a ONG no WhatsApp' }),
+    ).toHaveClass('bg-whatsapp');
+    await expect(canvas.getByText(/^Fecha às/)).toBeVisible();
+  },
+};
+
+export const Mobile: Story = {
+  globals: { viewport: { value: 'mobile' } },
+};

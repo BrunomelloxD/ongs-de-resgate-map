@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useUnsavedChanges } from '@/components/ui/unsaved-changes.client';
 import { checkCnpj, checkEmail } from './actions/check-availability';
-import { useSignup } from './components/signup-provider.client';
+import { EMPTY_SIGNUP, useSignup } from './components/signup-provider.client';
 import { StepAbout } from './components/step-about.client';
 import {
   StepAddress,
@@ -22,6 +23,8 @@ import type {
   SignupStep,
 } from './signup.types';
 import { SIGNUP_BASE_PATH, SIGNUP_STEPS, stepPath } from './steps';
+
+const EMPTY_JSON = JSON.stringify(EMPTY_SIGNUP);
 
 export interface AddressFieldsSlot extends AddressSlot {
   values: AddressValues;
@@ -84,6 +87,11 @@ export function SignupWizard({
     },
     [reset],
   );
+
+  // DIRTY-01/02: a draft counts until "Criar conta" goes out. Moving between
+  // the steps keeps it (only the links that leave the wizard ask).
+  const hasDraft = signup.image !== null || JSON.stringify(data) !== EMPTY_JSON;
+  useUnsavedChanges(ready && hasDraft && !submitting);
 
   if (!ready || pending) return null;
 

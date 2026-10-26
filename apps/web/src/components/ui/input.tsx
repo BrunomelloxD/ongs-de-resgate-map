@@ -2,13 +2,22 @@ import * as React from 'react';
 import { Input as InputPrimitive } from '@base-ui/react/input';
 import { cn } from 'cn';
 
+/**
+ * Design System "Input" (figcraft): 52px, white, 1.5px Contorno border, 12px
+ * radius, 16px text; 2px borders on focus and on error, with the ⓘ inside.
+ * Shared by Input, Textarea, Select and PasswordInput.
+ */
+export const fieldClass =
+  'w-full min-w-0 rounded-field border-[1.5px] border-line bg-surface px-4 text-base text-fg transition-colors placeholder:text-fg-muted focus-visible:border-2 focus-visible:border-focus disabled:cursor-not-allowed disabled:border-surface-2 disabled:bg-subtle disabled:text-fg-muted aria-invalid:border-2 aria-invalid:border-error aria-invalid:pr-12 aria-invalid:field-invalid-icon';
+
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
     <InputPrimitive
       type={type}
       data-slot="input"
       className={cn(
-        'min-h-11 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
+        fieldClass,
+        'min-h-13 py-3 file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
         className,
       )}
       {...props}

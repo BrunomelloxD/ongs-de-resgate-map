@@ -1,4 +1,4 @@
-import { Check, Minus, X } from 'lucide-react';
+import { CircleCheck, Clock, Lock } from 'lucide-react';
 import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
@@ -12,11 +12,12 @@ export const STATUS_BADGE_LABELS = {
 export type StatusBadgeVariant = keyof typeof STATUS_BADGE_LABELS;
 
 // Colour never carries the meaning alone: every variant has an icon and a text.
+// Icons of the figcraft "Badge/*": clock for open and closed, lock for unavailable.
 const ICONS = {
-  open: Check,
-  available: Check,
-  closed: X,
-  unavailable: Minus,
+  open: Clock,
+  available: CircleCheck,
+  closed: Clock,
+  unavailable: Lock,
 } as const;
 
 const statusBadgeVariants = cva(

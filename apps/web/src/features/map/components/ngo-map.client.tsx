@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { X } from 'lucide-react';
+import { LocateFixed, SlidersHorizontal, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { BottomSheet } from '@/components/ui/bottom-sheet.client';
 import {
@@ -22,7 +21,9 @@ import {
 } from '../lib/map-hash';
 import { rankNgos } from '../lib/rank';
 import { mapDictionary as t } from '../map.dictionary';
-import type { MapSpecies, RadiusKm } from '../map.types';
+import type { MapSpecies, PlaceSearch, RadiusKm } from '../map.types';
+import { LocationErrorPanel } from './location-error-panel';
+import { MapColumnHeader } from './map-column-header';
 import { MapFilters, type MapFilterValues } from './map-filters';
 import { NgoList } from './ngo-list';
 import { NgoPreviewCard } from './ngo-preview-card';
@@ -31,10 +32,29 @@ export const LOCATION_PATH = '/localizacao';
 /** Same timeout as the location screen (LOC-02). */
 export const GEOLOCATION_TIMEOUT_MS = 10_000;
 
-const PRIMARY =
-  'touch-target inline-flex items-center justify-center rounded-full bg-brand px-6 py-3 font-semibold text-on-brand';
-const SECONDARY =
-  'touch-target inline-flex items-center justify-center rounded-full border-2 border-fg px-6 py-3 font-semibold text-fg';
+/** MAP-15: with no center, the map shows Brazil behind the error. */
+export const BRAZIL_BOUNDS: LatLngBounds = [
+  [-33.75, -73.99],
+  [5.27, -34.79],
+];
+
+// Figcraft 03-mapa-* (390 px): what the collapsed sheet shows, handle included.
+const PEEK = {
+  ready: '14rem',
+  loading: '18rem',
+  empty: '26rem',
+  error: '12rem',
+} as const;
+/** The search bar and "Centralizar em mim" take the top 140 px of the phone's map. */
+const PHONE_CONTROLS_PX = 140;
+/** Open, the sheet stops under the search bar (figcraft "lista aberta": 150 px). */
+const SHEET_OPEN_TOP = '150px';
+
+// C-22: the phone's map has no zoom buttons (pinch zooms); the desktop keeps them.
+const MAP_CLASS = 'max-lg:[&_.leaflet-control-zoom]:hidden!';
+
+const FLOATING_BUTTON =
+  'touch-target inline-flex items-center justify-center rounded-full bg-surface text-fg shadow-card';
 
 const toBounds = ([minLng, minLat, maxLng, maxLat]: Bbox): LatLngBounds => [
   [minLat, minLng],
@@ -75,60 +95,104 @@ export interface NgoMapProps {
   hash: string;
   /** Writes a new fragment: a new radius or a new position. */
   onHashChange: (hash: string) => void;
-  /** Only called after a tap on "Tentar de novo" (LOC-03). */
+  /** Only called after a tap on "Tentar de novo" or "Centralizar em mim" (LOC-03). */
   geolocation?: Geo;
   search?: SearchNgos;
+  /** "Cidade ou CEP" of the location feature, handed in by `app/`. */
+  PlaceSearch: PlaceSearch;
 }
 
 /** The map of NGOs with its list, filters and preview (MAP, MAPF). */
 export function NgoMap({ hash, ...props }: NgoMapProps) {
   const parsed = parseMapHash(hash);
-  if (!parsed) {
-    return (
-      <LocationError
-        geolocation={props.geolocation}
-        onHashChange={props.onHashChange}
-      />
-    );
-  }
+  if (!parsed) return <LocationError {...props} />;
 
   return (
     <NgoMapView center={parsed.center} radiusKm={parsed.radiusKm} {...props} />
   );
 }
 
-/** MAP-15: no usable center. */
-function LocationError({
-  geolocation,
-  onHashChange,
-}: Pick<NgoMapProps, 'geolocation' | 'onHashChange'>) {
-  function retry() {
+/** Asks for the position after a tap, then writes it in the fragment (SEC-01). */
+function useLocate(
+  geolocation: Geo | undefined,
+  onPosition: (position: LatLng) => void,
+) {
+  return () =>
     geolocation?.getCurrentPosition(
       ({ coords }) =>
-        onHashChange(
-          buildMapHash(
-            { lat: coords.latitude, lng: coords.longitude },
-            DEFAULT_RADIUS_KM,
-          ),
-        ),
-      // Still no position: the error stays on screen.
+        onPosition({ lat: coords.latitude, lng: coords.longitude }),
+      // Still no position: the screen stays as it is.
       () => {},
       { timeout: GEOLOCATION_TIMEOUT_MS },
     );
-  }
+}
+
+/**
+ * MAP-15: no usable center. Figcraft 03-mapa-erro-*: the map stays behind the
+ * error, in the bottom panel on the phone or in the list column on desktop.
+ */
+function LocationError({
+  tileUrl,
+  attribution,
+  geolocation,
+  onHashChange,
+  PlaceSearch,
+}: Omit<NgoMapProps, 'hash'>) {
+  const isDesktop = useIsDesktop();
+  const goTo = (place: LatLng) =>
+    onHashChange(buildMapHash(place, DEFAULT_RADIUS_KM));
+  const retry = useLocate(geolocation, goTo);
+
+  const panel = (
+    <LocationErrorPanel
+      onRetry={retry}
+      search={
+        <PlaceSearch
+          label={t.locationError.field}
+          submitLabel={t.locationError.manual}
+          submitVariant="outline"
+          onPlace={goTo}
+        />
+      }
+    />
+  );
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-4 px-4 py-10 text-fg">
-      <h2 className="font-heading text-3xl font-extrabold">
-        {t.locationError.title}
-      </h2>
-      <p className="text-fg-secondary">{t.locationError.text}</p>
-      <button type="button" className={PRIMARY} onClick={retry}>
-        {t.locationError.retry}
-      </button>
-      <Link href={LOCATION_PATH} className={SECONDARY}>
-        {t.locationError.manual}
-      </Link>
+    <div data-slot="ngo-map" className="flex min-h-0 flex-1">
+      {isDesktop && (
+        <aside
+          aria-label={t.list.label}
+          className="flex w-[440px] shrink-0 flex-col gap-6 overflow-y-auto bg-page px-6 py-6"
+        >
+          <MapColumnHeader />
+          {panel}
+        </aside>
+      )}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        {/* Scenery only: out of the tab order and the accessibility tree. */}
+        <div inert className="size-full opacity-60">
+          <MapView
+            tileUrl={tileUrl}
+            attribution={attribution}
+            bounds={BRAZIL_BOUNDS}
+            label={t.mapLabel}
+            clusterLabel={t.clusterLabel}
+            className={MAP_CLASS}
+          />
+        </div>
+        {!isDesktop && (
+          <section
+            aria-label={t.locationError.title}
+            className="absolute inset-x-0 bottom-0 z-[1000] max-h-full overflow-y-auto rounded-t-sheet bg-page px-gutter pt-3 pb-6 shadow-card"
+          >
+            <span
+              aria-hidden="true"
+              className="mx-auto mb-4 block h-1.5 w-12 rounded-full bg-line"
+            />
+            {panel}
+          </section>
+        )}
+      </div>
     </div>
   );
 }
@@ -144,7 +208,9 @@ function NgoMapView({
   tileUrl,
   attribution,
   onHashChange,
+  geolocation,
   search = fetchNgos,
+  PlaceSearch,
 }: NgoMapViewProps) {
   const isDesktop = useIsDesktop();
   const [openNow, setOpenNow] = useState(false);
@@ -201,6 +267,12 @@ function NgoMapView({
     [lat, lng, radiusKm, frame.hash, hash, onHashChange],
   );
 
+  // M-03: "Centralizar em mim" keeps the radius; the position only goes to the fragment.
+  const locate = useLocate(geolocation, (position) =>
+    onHashChange(buildMapHash(position, radiusKm)),
+  );
+  const goTo = (place: LatLng) => onHashChange(buildMapHash(place, radiusKm));
+
   function setRadius(next: RadiusKm) {
     if (next !== radiusKm) onHashChange(buildMapHash(searchCenter, next));
   }
@@ -226,34 +298,54 @@ function NgoMapView({
     variant:
       ngo.id === selectedId ? 'selected' : ngo.openNow ? 'open' : 'closed',
     label: t.pinLabel(ngo.name, ngo.openNow),
+    photoUrl: ngo.id === selectedId ? ngo.thumbUrl : null,
   }));
 
-  const panel = (
-    <div className="flex flex-col gap-6">
-      <MapFilters
-        value={{ openNow, radiusKm, species }}
-        onChange={handleFilters}
-      />
-      <NgoList
-        status={result.status}
-        items={ranked}
-        radiusKm={radiusKm}
-        filtered={openNow || species.length > 0}
-        truncated={result.truncated}
-        selectedId={selectedId}
-        onSelect={selectFromList}
-        onRetry={result.retry}
-        onWiden={wider ? () => setRadius(wider) : undefined}
-        onClearFilters={() =>
-          handleFilters({
-            openNow: false,
-            radiusKm: DEFAULT_RADIUS_KM,
-            species: [],
-          })
-        }
-        otherCityHref={LOCATION_PATH}
-      />
-    </div>
+  const filtered = openNow || species.length > 0;
+  // Figcraft 03-mapa-*: the filters sit under the title, on the phone only with the sheet open.
+  const filters = (isDesktop || sheetOpen) && (
+    <MapFilters
+      value={{ openNow, radiusKm, species }}
+      onChange={handleFilters}
+    />
+  );
+  const list = (
+    <NgoList
+      status={result.status}
+      items={ranked}
+      radiusKm={radiusKm}
+      filtered={filtered}
+      truncated={result.truncated}
+      selectedId={selectedId}
+      onSelect={selectFromList}
+      onRetry={result.retry}
+      onWiden={wider ? () => setRadius(wider) : undefined}
+      onClearFilters={() =>
+        handleFilters({
+          openNow: false,
+          radiusKm: DEFAULT_RADIUS_KM,
+          species: [],
+        })
+      }
+      otherCityHref={LOCATION_PATH}
+      filters={filters}
+    />
+  );
+  // "ready" with every NGO filtered out looks empty too.
+  const empty =
+    result.status === 'empty' ||
+    (result.status === 'ready' && ranked.length === 0);
+  const peek = empty ? PEEK.empty : PEEK[result.status];
+
+  const locateButton = (
+    <button
+      type="button"
+      aria-label={t.locate}
+      onClick={locate}
+      className={`${FLOATING_BUTTON} size-11`}
+    >
+      <LocateFixed aria-hidden="true" className="size-6" />
+    </button>
   );
 
   return (
@@ -261,9 +353,11 @@ function NgoMapView({
       {isDesktop && (
         <aside
           aria-label={t.list.label}
-          className="w-[440px] shrink-0 overflow-y-auto bg-page px-6 py-6"
+          className="flex w-[440px] shrink-0 flex-col gap-6 overflow-y-auto bg-page px-6 py-6"
         >
-          {panel}
+          <MapColumnHeader />
+          <PlaceSearch label={t.search.label} onPlace={goTo} />
+          {list}
         </aside>
       )}
       <div className="relative min-h-0 flex-1 overflow-hidden">
@@ -278,18 +372,83 @@ function NgoMapView({
           onSelect={setSelectedId}
           onMoveEnd={handleMoveEnd}
           focus={focus}
+          className={MAP_CLASS}
+          anchored={
+            selected && {
+              position: [selected.lat, selected.lng],
+              // On the phone, the card stays under the search bar and "Centralizar em mim".
+              topClearance: isDesktop ? undefined : PHONE_CONTROLS_PX,
+              content: (
+                <div className="relative">
+                  <NgoPreviewCard ngo={selected} className="pr-14" />
+                  <button
+                    type="button"
+                    aria-label={t.preview.close}
+                    onClick={() => setSelectedId(null)}
+                    className="touch-target absolute top-2 right-2 inline-flex items-center justify-center rounded-full text-fg"
+                  >
+                    <X aria-hidden="true" className="size-6" />
+                  </button>
+                </div>
+              ),
+            }
+          }
+          circle={
+            empty
+              ? {
+                  center: [searchCenter.lat, searchCenter.lng],
+                  radiusM: radiusKm * 1000,
+                }
+              : undefined
+          }
         />
-        {selected && (
-          <div className="absolute inset-x-4 top-4 z-[1000] mx-auto max-w-sm">
-            <NgoPreviewCard ngo={selected} className="pr-14" />
-            <button
-              type="button"
-              aria-label={t.preview.close}
-              onClick={() => setSelectedId(null)}
-              className="touch-target absolute top-2 right-2 inline-flex items-center justify-center rounded-full text-fg"
+        {isDesktop ? (
+          <div className="absolute top-4 right-4 z-[1000]">{locateButton}</div>
+        ) : (
+          <>
+            <div
+              data-slot="map-search-bar"
+              className="absolute inset-x-4 top-4 z-[1001]"
             >
-              <X aria-hidden="true" className="size-6" />
-            </button>
+              <PlaceSearch
+                label={t.search.label}
+                variant="bar"
+                onPlace={goTo}
+                trailing={
+                  <span className="flex shrink-0 items-center gap-1">
+                    <span aria-hidden="true" className="h-7 w-px bg-line" />
+                    <button
+                      type="button"
+                      aria-label={t.search.filters}
+                      aria-expanded={sheetOpen}
+                      onClick={() => setSheetOpen(true)}
+                      className="touch-target inline-flex items-center justify-center rounded-full text-fg"
+                    >
+                      <SlidersHorizontal
+                        aria-hidden="true"
+                        className="size-6"
+                      />
+                    </button>
+                  </span>
+                }
+              />
+            </div>
+            <div className="absolute top-21 right-4 z-[1000]">
+              {locateButton}
+            </div>
+          </>
+        )}
+        {result.status === 'loading' && (
+          // M-08: the list already announces the search (MAP-12); this is the visual cue.
+          <div
+            data-slot="map-searching"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-4 top-1/2 z-[1000] flex -translate-y-1/2 justify-center"
+          >
+            <p className="flex items-center gap-3 rounded-full bg-surface px-6 py-3.5 font-bold text-fg shadow-card">
+              <span className="size-6 shrink-0 animate-spin rounded-full border-4 border-surface-2 border-t-brand motion-reduce:animate-none" />
+              {t.mapLoading}
+            </p>
           </div>
         )}
         {!isDesktop && (
@@ -297,8 +456,10 @@ function NgoMapView({
             label={t.list.label}
             open={sheetOpen}
             onOpenChange={setSheetOpen}
+            collapsedHeight={peek}
+            openTop={SHEET_OPEN_TOP}
           >
-            {panel}
+            {list}
           </BottomSheet>
         )}
       </div>

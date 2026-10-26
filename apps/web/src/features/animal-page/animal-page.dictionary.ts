@@ -13,6 +13,9 @@ export const animalPageDictionary = {
     // ANI-03: "o" for males, "a" for females.
     adopt: (name: string, sex: 'MALE' | 'FEMALE') =>
       `Quero adotar ${sex === 'MALE' ? 'o' : 'a'} ${name}`,
+    // Supporting text of the figcraft's action bar (05-detalhe-do-animal).
+    adoptHint: (name: string, sex: 'MALE' | 'FEMALE') =>
+      `Abre o WhatsApp da ONG com uma mensagem pronta sobre ${sex === 'MALE' ? 'o' : 'a'} ${name}.`,
     unavailable: (name: string) =>
       `${name} não está disponível para adoção no momento.`,
     otherAnimals: (ngo: string) => `Ver outros animais da ${ngo}`,

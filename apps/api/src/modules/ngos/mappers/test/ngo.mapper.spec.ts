@@ -211,7 +211,7 @@ describe('NgoMapper', () => {
   });
 
   describe('toAnimal', () => {
-    it('capa de 1200 px com alt "Mel, gato, porte pequeno" (ANI-02, A11Y-11)', () => {
+    it('capa de 1200 px, com a de 600 para o card, e alt "Mel, gato, porte pequeno" (ANI-02, A11Y-11, T174)', () => {
       const cover = makeAnimalImage({ position: 0, width: 1200, height: 900 });
 
       const dto = NgoMapper.toAnimal(makeNgoAnimal({}, [cover]));
@@ -227,6 +227,7 @@ describe('NgoMapper', () => {
         available: true,
         cover: {
           url: `/img/${cover.keyPrefix}-1200.webp`,
+          mediumUrl: `/img/${cover.keyPrefix}-600.webp`,
           thumbUrl: `/img/${cover.keyPrefix}-160.webp`,
           width: 1200,
           height: 900,

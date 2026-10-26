@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LiveRegion } from '@/components/ui/live-region.client';
 import type { ForgotPasswordState } from '../auth.types';
@@ -50,9 +50,10 @@ describe('ForgotPasswordForm', () => {
     await userEvent.type(screen.getByLabelText('E-mail'), 'contato@patas.org');
     await userEvent.click(screen.getByRole('button', { name: 'Enviar link' }));
 
-    expect(
-      await screen.findByRole('heading', { name: 'Confira seu e-mail' }),
-    ).toHaveFocus();
+    const heading = await screen.findByRole('heading', {
+      name: 'Confira seu e-mail',
+    });
+    await waitFor(() => expect(heading).toHaveFocus());
     expect(screen.getByRole('status')).toHaveTextContent(SENT);
     expect(screen.getAllByText(SENT)).toHaveLength(2);
     expect(action.mock.calls[0]![1].get('email')).toBe('contato@patas.org');
@@ -103,7 +104,7 @@ describe('ForgotPasswordForm', () => {
         name: 'Muitos pedidos. Tente de novo em 1 hora.',
       }),
     ).toHaveAttribute('href', '#forgot-email');
-    expect(screen.getByLabelText('E-mail')).toHaveFocus();
+    await waitFor(() => expect(screen.getByLabelText('E-mail')).toHaveFocus());
     expect(screen.getByLabelText('E-mail')).toHaveValue('contato@patas.org');
     expect(
       screen.queryByRole('heading', { name: 'Confira seu e-mail' }),

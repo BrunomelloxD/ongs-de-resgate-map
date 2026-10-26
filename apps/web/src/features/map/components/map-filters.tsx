@@ -1,4 +1,5 @@
-import { Chip, ChipGroup } from '@/components/ui/chip';
+import { Chip } from '@/components/ui/chip';
+import { ChipSelect } from '@/components/ui/chip-select';
 import { cn } from '@/lib/utils';
 import { DEFAULT_RADIUS_KM, RADII } from '../lib/map-hash';
 import { mapDictionary as t } from '../map.dictionary';
@@ -30,7 +31,21 @@ export interface MapFiltersProps {
   className?: string;
 }
 
-/** "Aberta agora", radius, species and "Limpar filtros" (MAPF-01 to MAPF-04). */
+const RADIUS_OPTIONS = RADII.map((km) => ({
+  value: String(km),
+  label: t.filters.radiusOption(km),
+}));
+
+const isDefault = (value: MapFilterValues) =>
+  !value.openNow &&
+  value.radiusKm === DEFAULT_FILTERS.radiusKm &&
+  value.species.length === 0;
+
+/**
+ * Figcraft 03-mapa-* (M-04, C-15): one row of chips, "✓ Aberta agora", the
+ * "Até 5 km ▾" dropdown, "Com cães" and "Com gatos" (MAPF-01 to MAPF-03). The
+ * row scrolls sideways on the phone. "Limpar filtros" only shows with a filter on.
+ */
 export function MapFilters({ value, onChange, className }: MapFiltersProps) {
   function toggleSpecies(species: MapSpecies, on: boolean) {
     const next = SPECIES.map((option) => option.value).filter((option) =>
@@ -42,40 +57,39 @@ export function MapFilters({ value, onChange, className }: MapFiltersProps) {
   return (
     <section
       aria-label={t.filters.label}
-      className={cn('flex flex-col gap-4', className)}
+      className={cn('flex flex-col items-start gap-2', className)}
     >
-      <div className="flex flex-wrap gap-2">
+      <div
+        data-slot="map-filters-row"
+        className="-mx-4 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:w-full lg:flex-wrap lg:overflow-visible lg:px-0"
+      >
         <Chip
           pressed={value.openNow}
           onPressedChange={(openNow) => onChange({ ...value, openNow })}
+          className="shrink-0"
         >
           {t.filters.openNow}
         </Chip>
-      </div>
-      <ChipGroup label={t.filters.radius}>
-        {RADII.map((radiusKm) => (
-          <Chip
-            key={radiusKm}
-            pressed={value.radiusKm === radiusKm}
-            // A radius is always chosen: pressing the current one keeps it.
-            onPressedChange={() => onChange({ ...value, radiusKm })}
-          >
-            {t.filters.radiusOption(radiusKm)}
-          </Chip>
-        ))}
-      </ChipGroup>
-      <ChipGroup label={t.filters.species}>
+        <ChipSelect
+          label={t.filters.radius}
+          value={String(value.radiusKm)}
+          options={RADIUS_OPTIONS}
+          onValueChange={(km) =>
+            onChange({ ...value, radiusKm: Number(km) as RadiusKm })
+          }
+        />
         {SPECIES.map((option) => (
           <Chip
             key={option.value}
             pressed={value.species.includes(option.value)}
             onPressedChange={(on) => toggleSpecies(option.value, on)}
+            className="shrink-0"
           >
             {option.label}
           </Chip>
         ))}
-      </ChipGroup>
-      <div>
+      </div>
+      {!isDefault(value) && (
         <button
           type="button"
           onClick={() => onChange(DEFAULT_FILTERS)}
@@ -83,7 +97,7 @@ export function MapFilters({ value, onChange, className }: MapFiltersProps) {
         >
           {t.filters.clear}
         </button>
-      </div>
+      )}
     </section>
   );
 }

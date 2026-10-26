@@ -1,5 +1,11 @@
 import Link from 'next/link';
-import { MapPin, MessageCircle, PawPrint } from 'lucide-react';
+import { Lock, MapPin, MessageCircle, PawPrint } from 'lucide-react';
+import { ActionBar } from '@/components/ui/action-bar';
+import { Alert } from '@/components/ui/alert';
+import {
+  ShareButton,
+  type ShareButtonProps,
+} from '@/components/ui/share-button.client';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatAge } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -11,7 +17,7 @@ const t = animalPageDictionary.detail;
 
 export const NGO_THUMB_SIZE_PX = 56;
 const BUTTON =
-  'touch-target inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold';
+  'touch-target inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold';
 
 export function ngoHref(slug: string): string {
   return `/ong/${slug}`;
@@ -19,11 +25,13 @@ export function ngoHref(slug: string): string {
 
 export interface AnimalDetailProps {
   animal: AnimalPublic;
+  /** SHARE-01: title, text and canonical URL of the page. */
+  share?: Pick<ShareButtonProps, 'title' | 'text' | 'url'>;
   className?: string;
 }
 
 /** ANI-01 to ANI-05: photos, data, the NGO and the adoption button. */
-export function AnimalDetail({ animal, className }: AnimalDetailProps) {
+export function AnimalDetail({ animal, share, className }: AnimalDetailProps) {
   const { ngo } = animal;
   const adopt = t.adopt(animal.name, animal.sex);
   const fields = [
@@ -62,32 +70,45 @@ export function AnimalDetail({ animal, className }: AnimalDetailProps) {
 
         {/* The api sends whatsappUrl only while the animal is available (ANI-04). */}
         {animal.whatsappUrl ? (
-          <a
-            href={animal.whatsappUrl}
-            className={cn(BUTTON, 'bg-brand-deep text-on-brand-deep')}
+          <ActionBar
+            layout="stretch"
+            hint={t.adoptHint(animal.name, animal.sex)}
           >
-            <MessageCircle aria-hidden="true" className="size-5" />
-            {adopt}
-          </a>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              disabled
-              className={cn(BUTTON, 'bg-surface-2 text-fg-secondary')}
+            <a
+              href={animal.whatsappUrl}
+              className={cn(BUTTON, 'bg-brand-deep text-on-brand-deep')}
             >
               <MessageCircle aria-hidden="true" className="size-5" />
               {adopt}
-            </button>
-            <p className="text-fg-secondary">{t.unavailable(animal.name)}</p>
-            <Link
-              href={ngoHref(ngo.slug)}
-              className="touch-target inline-flex items-center font-semibold text-brand-text underline underline-offset-4"
+            </a>
+          </ActionBar>
+        ) : (
+          <>
+            <Alert variant="info" title={t.unavailable(animal.name)} />
+            <ActionBar
+              layout="stretch"
+              hint={
+                <Link
+                  href={ngoHref(ngo.slug)}
+                  className="touch-target inline-flex items-center font-semibold text-brand-text underline underline-offset-4"
+                >
+                  {t.otherAnimals(ngo.name)}
+                </Link>
+              }
             >
-              {t.otherAnimals(ngo.name)}
-            </Link>
-          </div>
+              <button
+                type="button"
+                disabled
+                className={cn(BUTTON, 'bg-surface-2 text-fg-disabled')}
+              >
+                <Lock aria-hidden="true" className="size-5" />
+                {adopt}
+              </button>
+            </ActionBar>
+          </>
         )}
+
+        {share && <ShareButton {...share} />}
 
         {animal.description && (
           <section className="flex flex-col gap-2">

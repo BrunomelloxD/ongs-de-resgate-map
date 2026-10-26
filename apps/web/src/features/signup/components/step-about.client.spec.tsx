@@ -297,7 +297,7 @@ describe('StepAbout', () => {
     expect(onImageChange).not.toHaveBeenCalled();
   });
 
-  it('SIGN-09: PNG válido é guardado e aparece em prévia quadrada; dá para trocar e remover', async () => {
+  it('SIGN-09: PNG válido é guardado e aparece em prévia recortada em pino; dá para trocar e remover', async () => {
     const { onImageChange } = renderStep();
     const file = new File(['png'], 'logo-patas.png', { type: 'image/png' });
 
@@ -308,7 +308,7 @@ describe('StepAbout', () => {
       name: 'Prévia da imagem da ONG',
     });
     expect(preview).toHaveAttribute('src', 'blob:preview');
-    expect(preview).toHaveClass('object-cover', 'size-20');
+    expect(preview.closest('[data-slot="pin-photo"]')).not.toBeNull();
     expect(screen.getByText('logo-patas.png')).toBeInTheDocument();
     expect(screen.getByText('Trocar imagem')).toHaveAttribute(
       'for',

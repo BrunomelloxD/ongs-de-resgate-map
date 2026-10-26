@@ -8,6 +8,12 @@ export class AnimalImageDto {
   @ApiProperty({ example: '/img/ngos/{ngoId}/images/{id}-1200.webp' })
   url!: string;
 
+  @ApiProperty({
+    example: '/img/ngos/{ngoId}/images/{id}-600.webp',
+    description: 'PERF-02: the 600 px variant, for the cards',
+  })
+  mediumUrl!: string;
+
   @ApiProperty({ example: '/img/ngos/{ngoId}/images/{id}-160.webp' })
   thumbUrl!: string;
 

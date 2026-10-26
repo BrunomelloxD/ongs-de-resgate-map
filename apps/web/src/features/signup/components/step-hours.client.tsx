@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ActionBar } from '@/components/ui/action-bar';
 import { Button } from '@/components/ui/button';
 import {
   ErrorSummary,
@@ -101,24 +102,14 @@ export function StepHours({
 
         {renderFields({ errors: shown, idPrefix: HOURS_ID_PREFIX })}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            onClick={onBack}
-            className="rounded-full text-base font-semibold"
-          >
+        <ActionBar>
+          <Button type="button" variant="outline" size="lg" onClick={onBack}>
             {t.hours.back}
           </Button>
-          <Button
-            type="submit"
-            size="lg"
-            className="rounded-full text-base font-semibold"
-          >
+          <Button type="submit" size="lg">
             {t.hours.submit}
           </Button>
-        </div>
+        </ActionBar>
       </form>
     </div>
   );

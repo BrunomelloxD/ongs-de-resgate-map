@@ -126,9 +126,10 @@ describe('PinPicker', () => {
   it('endereço encontrado: mostra a dica do design, sem o aviso', () => {
     renderPicker();
 
+    expect(screen.getByText('O pino está na entrada da ONG?')).toBeVisible();
     expect(
       screen.getByText(
-        'O pino está na entrada da ONG? Se não estiver, arraste o pino até o lugar certo.',
+        'Se não estiver, arraste o pino até o lugar certo. É ali que os visitantes vão chegar.',
       ),
     ).toBeVisible();
     expect(screen.queryByText('Arraste o pino até o local')).toBeNull();

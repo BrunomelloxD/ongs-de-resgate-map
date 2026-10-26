@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ActionBar } from '@/components/ui/action-bar';
 import { Button } from '@/components/ui/button';
 import {
   ErrorSummary,
@@ -109,24 +110,14 @@ export function StepAddress({
 
         {renderFields({ errors: shown, idPrefix: ADDRESS_ID_PREFIX })}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            onClick={onBack}
-            className="rounded-full text-base font-semibold"
-          >
+        <ActionBar>
+          <Button type="button" variant="outline" size="lg" onClick={onBack}>
             {t.address.back}
           </Button>
-          <Button
-            type="submit"
-            size="lg"
-            className="rounded-full text-base font-semibold"
-          >
+          <Button type="submit" size="lg">
             {t.address.submit}
           </Button>
-        </div>
+        </ActionBar>
       </form>
     </div>
   );

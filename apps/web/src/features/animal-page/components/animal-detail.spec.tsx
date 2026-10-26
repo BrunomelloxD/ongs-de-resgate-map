@@ -1,4 +1,5 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { LiveRegion } from '@/components/ui/live-region.client';
 import { makeAnimal } from '../test-fixtures';
 import { AnimalDetail } from './animal-detail';
 
@@ -9,6 +10,52 @@ function unavailable() {
 }
 
 describe('AnimalDetail', () => {
+  describe('SHARE-01: Compartilhar', () => {
+    afterEach(() => {
+      Object.defineProperty(navigator, 'share', {
+        value: undefined,
+        configurable: true,
+      });
+    });
+
+    it('passa ao navigator.share o título, o texto e a URL canônica do animal', async () => {
+      const share = vi.fn(async () => undefined);
+      Object.defineProperty(navigator, 'share', {
+        value: share,
+        configurable: true,
+      });
+      render(
+        <LiveRegion>
+          <AnimalDetail
+            animal={makeAnimal()}
+            share={{
+              title: 'Caramelo · Patas do Bairro',
+              text: 'Caramelo é calmo.',
+              url: 'https://animalhelper.example/ong/patas-do-bairro/animais/1',
+            }}
+          />
+        </LiveRegion>,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Compartilhar' }));
+
+      await vi.waitFor(() =>
+        expect(share).toHaveBeenCalledWith({
+          title: 'Caramelo · Patas do Bairro',
+          text: 'Caramelo é calmo.',
+          url: 'https://animalhelper.example/ong/patas-do-bairro/animais/1',
+        }),
+      );
+    });
+
+    it('sem os dados do compartilhamento, sem o botão', () => {
+      render(<AnimalDetail animal={makeAnimal()} />);
+
+      expect(
+        screen.queryByRole('button', { name: 'Compartilhar' }),
+      ).not.toBeInTheDocument();
+    });
+  });
   it('ANI-01: nome, selo, espécie, raça, sexo, porte, idade, descrição e galeria', () => {
     render(<AnimalDetail animal={makeAnimal()} />);
 
@@ -75,6 +122,31 @@ describe('AnimalDetail', () => {
       }),
     ).toHaveAttribute('href', '/ong/patas-do-bairro');
     expect(screen.getByText('Indisponível')).toBeInTheDocument();
+  });
+
+  it('T183: "Quero adotar" vai na barra de ações com o texto de apoio do figcraft', () => {
+    const { container } = render(<AnimalDetail animal={makeAnimal()} />);
+    const bar = container.querySelector('[data-slot="action-bar"]')!;
+
+    expect(bar).toContainElement(
+      screen.getByRole('link', { name: 'Quero adotar o Caramelo' }),
+    );
+    expect(bar).toHaveTextContent(
+      'Abre o WhatsApp da ONG com uma mensagem pronta sobre o Caramelo.',
+    );
+  });
+
+  it('T183/C-06: indisponível, o texto do ANI-05 fica num Alert/Info e o botão na barra', () => {
+    const { container } = render(<AnimalDetail animal={unavailable()} />);
+    const alert = container.querySelector('[data-slot="alert"]')!;
+
+    expect(alert).toHaveAttribute('data-variant', 'info');
+    expect(alert).toHaveTextContent(
+      'Caramelo não está disponível para adoção no momento.',
+    );
+    expect(
+      container.querySelector('[data-slot="action-bar"] button'),
+    ).toBeDisabled();
   });
 
   it('ANI-01: card da ONG com nome, cidade e link', () => {

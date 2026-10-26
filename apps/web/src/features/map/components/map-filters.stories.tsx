@@ -30,3 +30,21 @@ export const AllOn: Story = {
     await expect(args.onChange).toHaveBeenCalledWith(DEFAULT_FILTERS);
   },
 };
+
+/** Figcraft 03-mapa-lista-aberta-mobile: one row that scrolls sideways. */
+export const Mobile: Story = {
+  globals: { viewport: { value: 'mobile' } },
+};
+
+/** M-04: the radius dropdown works from the keyboard, like any select. */
+export const RadiusByKeyboard: Story = {
+  play: async ({ args, canvas }) => {
+    const radius = canvas.getByRole('combobox', { name: 'Distância' });
+    radius.focus();
+    await userEvent.selectOptions(radius, '10');
+    await expect(args.onChange).toHaveBeenCalledWith({
+      ...DEFAULT_FILTERS,
+      radiusKm: 10,
+    });
+  },
+};

@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { MessageCircle, PawPrint } from 'lucide-react';
+import { Heart } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PaginationNav } from '@/components/ui/pagination-nav';
 import { cn } from '@/lib/utils';
@@ -8,8 +9,7 @@ import type { NgoAnimalPage } from '../ngo-page.types';
 import { AnimalCard } from './animal-card';
 
 const t = ngoPageDictionary.animals;
-const ACTION =
-  'touch-target inline-flex items-center justify-center gap-2 rounded-full bg-brand-deep px-6 py-3 font-semibold text-on-brand-deep';
+const ACTION = buttonVariants();
 
 export interface AnimalGridProps {
   page: NgoAnimalPage;
@@ -17,6 +17,10 @@ export interface AnimalGridProps {
   hasAnimals: boolean;
   /** The NGO's WhatsApp, offered when it has no animals (NGO-08). */
   whatsappUrl: string;
+  /** The NGO's name, for the empty state (O-07). */
+  ngoName: string;
+  /** "{n} animais · {m} disponíveis agora" (O-05); left out when unknown. */
+  counts?: { total: number; available: number };
   /** The filter controls; they only show when the NGO has animals. */
   filters?: React.ReactNode;
   animalHref: (id: string) => string;
@@ -32,6 +36,8 @@ export function AnimalGrid({
   page: { data, meta },
   hasAnimals,
   whatsappUrl,
+  ngoName,
+  counts,
   filters,
   animalHref,
   pageHref,
@@ -43,19 +49,33 @@ export function AnimalGrid({
       aria-labelledby="animals-title"
       className={cn('flex flex-col gap-6 text-fg', className)}
     >
-      <h2 id="animals-title" className="font-heading text-3xl font-extrabold">
-        {t.title}
-      </h2>
+      <div className="flex flex-col gap-1">
+        <h2
+          id="animals-title"
+          className="font-heading text-2xl font-extrabold lg:text-4xl"
+        >
+          {t.title}
+        </h2>
+        {hasAnimals && counts && (
+          <p className="text-fg-secondary">
+            {t.count(counts.total, counts.available)}
+          </p>
+        )}
+      </div>
 
       {!hasAnimals ? (
         <EmptyState
-          title={t.emptyNgo.title}
+          layout="card"
+          title={t.emptyNgo.title(ngoName)}
           description={t.emptyNgo.description}
-          illustration={<PawPrint className="size-12" />}
+          illustration={<Heart />}
           actions={[
-            <a key="whatsapp" href={whatsappUrl} className={ACTION}>
-              <MessageCircle aria-hidden="true" className="size-5" />
-              {ngoPageDictionary.profile.whatsapp}
+            <a
+              key="whatsapp"
+              href={whatsappUrl}
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            >
+              {t.emptyNgo.ask}
             </a>,
           ]}
         />
@@ -73,7 +93,7 @@ export function AnimalGrid({
               ]}
             />
           ) : (
-            <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-x-3.5 gap-y-6 lg:grid-cols-3 lg:gap-6">
               {data.map((animal) => (
                 <li key={animal.id}>
                   <AnimalCard animal={animal} href={animalHref(animal.id)} />

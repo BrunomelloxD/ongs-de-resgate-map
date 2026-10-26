@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Clock, MapPin, PawPrint } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatDistance } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -76,7 +77,11 @@ export function NgoPreviewCard({ ngo, className }: NgoPreviewCardProps) {
       </div>
       <Link
         href={ngoHref(ngo.slug)}
-        className="touch-target inline-flex items-center justify-center rounded-full bg-brand-deep px-6 py-3 font-semibold text-on-brand-deep"
+        // Inside the map, leaflet.css colours every link: `!` keeps the button's.
+        className={cn(
+          buttonVariants({ variant: 'secondary' }),
+          'w-full text-on-brand-deep!',
+        )}
       >
         {t.preview.cta}
       </Link>

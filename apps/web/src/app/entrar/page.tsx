@@ -1,6 +1,14 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { authDictionary, LoginContainer } from '@/features/auth';
+import { AuthShell } from '@/components/ui/auth-shell';
+
+// Figcraft photo of this screen, as a WebP in public/ (PERF-02).
+const LOGIN_PHOTO = {
+  src: '/photos/login-puppy.webp',
+  width: 600,
+  height: 780,
+};
 
 export const metadata: Metadata = {
   title: authDictionary.login.metaTitle,
@@ -9,10 +17,14 @@ export const metadata: Metadata = {
 // The container reads the query string, so it streams inside Suspense.
 export default function LoginRoute({ searchParams }: PageProps<'/entrar'>) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 py-6 text-fg">
+    <AuthShell
+      variant="login"
+      photo={LOGIN_PHOTO}
+      phrase={authDictionary.panelPhrase}
+    >
       <Suspense fallback={null}>
         <LoginContainer searchParams={searchParams} />
       </Suspense>
-    </main>
+    </AuthShell>
   );
 }

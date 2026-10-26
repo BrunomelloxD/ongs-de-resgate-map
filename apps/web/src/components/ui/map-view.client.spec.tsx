@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type L from 'leaflet';
 import {
@@ -15,11 +15,15 @@ type Handlers = Record<string, (event: unknown) => void>;
 const recorded = vi.hoisted(() => ({
   map: {} as Props,
   tiles: {} as Props,
+  zoom: {} as Props,
   cluster: {} as Props,
   fitBounds: vi.fn(),
   panTo: vi.fn(),
   listeners: new Map<string, () => void>(),
   container: undefined as unknown as HTMLDivElement,
+  circle: undefined as Props | undefined,
+  point: { x: 400, y: 400 },
+  size: { x: 800, y: 600 },
 }));
 
 vi.mock('react-leaflet', () => ({
@@ -30,8 +34,16 @@ vi.mock('react-leaflet', () => ({
     recorded.map = props;
     return <div data-testid="map">{children}</div>;
   },
+  Circle: (props: Props) => {
+    recorded.circle = props;
+    return null;
+  },
   TileLayer: (props: Props) => {
     recorded.tiles = props;
+    return null;
+  },
+  ZoomControl: (props: Props) => {
+    recorded.zoom = props;
     return null;
   },
   Marker: ({
@@ -61,6 +73,8 @@ vi.mock('react-leaflet', () => ({
     panTo: recorded.panTo,
     on: (type: string, fn: () => void) => recorded.listeners.set(type, fn),
     off: (type: string) => recorded.listeners.delete(type),
+    latLngToContainerPoint: () => recorded.point,
+    getSize: () => recorded.size,
     getBounds: () => ({
       getSouth: () => -23.61,
       getWest: () => -46.72,
@@ -131,6 +145,9 @@ beforeEach(() => {
   recorded.panTo.mockClear();
   recorded.listeners.clear();
   recorded.container = document.createElement('div');
+  recorded.circle = undefined;
+  recorded.point = { x: 400, y: 400 };
+  recorded.size = { x: 800, y: 600 };
   mockReducedMotion(false);
 });
 
@@ -140,6 +157,16 @@ describe('MapView', () => {
 
     expect(recorded.tiles['url']).toBe('http://tiles.test/{z}/{x}/{y}.png');
     expect(recorded.tiles['attribution']).toBe('© OpenStreetMap contributors');
+  });
+
+  it('A11Y-07/T177: troca o zoom do Leaflet (em inglês) por um com "Aproximar" e "Afastar"', () => {
+    renderMap();
+
+    expect(recorded.map['zoomControl']).toBe(false);
+    expect(recorded.zoom).toEqual({
+      zoomInTitle: 'Aproximar',
+      zoomOutTitle: 'Afastar',
+    });
   });
 
   it('agrupa os pinos com maxClusterRadius: 40 (MAP-04)', () => {
@@ -266,6 +293,85 @@ describe('MapView', () => {
     renderMap({ markers: undefined });
 
     expect(screen.queryAllByRole('img')).toHaveLength(0);
+  });
+
+  describe('M-06: card ancorado num ponto', () => {
+    const anchored = {
+      position: [-23.55, -46.63] as [number, number],
+      content: <p>prévia</p>,
+    };
+    const card = () =>
+      document.querySelector<HTMLElement>('[data-slot="map-anchored"]')!;
+
+    it('fica acima do ponto, centralizado, com até 360 px', () => {
+      renderMap({ anchored });
+
+      expect(screen.getByText('prévia')).toBeInTheDocument();
+      expect(card()).toHaveAttribute('data-placement', 'above');
+      expect(card()).toHaveStyle({
+        left: '220px',
+        width: '360px',
+        top: '326px',
+      });
+    });
+
+    it('perto do topo vai para baixo do ponto e fica dentro das bordas do mapa', () => {
+      recorded.point = { x: 30, y: 100 };
+      recorded.size = { x: 390, y: 700 };
+      renderMap({ anchored });
+
+      expect(card()).toHaveAttribute('data-placement', 'below');
+      expect(card()).toHaveStyle({
+        left: '16px',
+        width: '358px',
+        top: '112px',
+      });
+    });
+
+    it('segue o mapa: um movimento reposiciona o card', () => {
+      renderMap({ anchored });
+      recorded.point = { x: 500, y: 450 };
+
+      act(() => recorded.listeners.get('move zoom resize')!());
+
+      expect(card()).toHaveStyle({ left: '320px', top: '376px' });
+    });
+
+    it('um toque no card não chega ao mapa', () => {
+      renderMap({ anchored });
+      const onMapPress = vi.fn();
+      card().parentElement!.addEventListener('mousedown', onMapPress);
+
+      fireEvent.mouseDown(screen.getByText('prévia'));
+
+      expect(onMapPress).not.toHaveBeenCalled();
+      // Leaflet's own flag: its click handler skips the card.
+      expect(
+        (card() as unknown as Record<string, unknown>)[
+          '_leaflet_disable_click'
+        ],
+      ).toBe(true);
+    });
+
+    it('para de seguir o mapa ao sair', () => {
+      const { unmount } = renderMap({ anchored });
+
+      unmount();
+
+      expect(recorded.listeners.has('move zoom resize')).toBe(false);
+    });
+  });
+
+  it('M-11: desenha o círculo tracejado do raio, sem interação', () => {
+    renderMap({ circle: { center: [-23.55, -46.63], radiusM: 5000 } });
+
+    expect(recorded.circle).toMatchObject({
+      center: [-23.55, -46.63],
+      radius: 5000,
+      interactive: false,
+      className: 'stroke-brand-deep fill-brand-deep',
+      pathOptions: { dashArray: '6 8' },
+    });
   });
 
   it('renderiza camadas extras recebidas como filhos', () => {
@@ -458,8 +564,40 @@ describe('MapView: área visível e foco', () => {
 
 describe('ícones', () => {
   it('a ponta da gota fica na coordenada; o círculo do visitante, no centro', () => {
-    expect(pinIcon('open').options.iconAnchor).toEqual([16, 40]);
-    expect(pinIcon('visitor').options.iconAnchor).toEqual([12, 12]);
+    // T173/T181: the 30×39 drop of the Design System sits at the bottom centre of a 44×44 box.
+    expect(pinIcon('open').options.iconAnchor).toEqual([22, 44]);
+    expect(pinIcon('visitor').options.iconAnchor).toEqual([22, 22]);
+  });
+
+  it.each([
+    ['open', [44, 44], [30, 39]],
+    ['closed', [44, 44], [30, 39]],
+    ['selected', [48, 62], [48, 62]],
+  ] as const)(
+    'A11Y-02: o pino %s tem área de foco de 44×44 ou mais, e o desenho mantém o tamanho do design',
+    (variant, box, drawing) => {
+      const { iconSize, iconAnchor, html } = pinIcon(variant).options;
+      const holder = document.createElement('div');
+      holder.innerHTML = html as string;
+      const svg = holder.querySelector('svg')!;
+
+      expect(iconSize).toEqual(box);
+      expect(iconAnchor).toEqual([box[0] / 2, box[1]]);
+      expect([
+        Number(svg.getAttribute('width')),
+        Number(svg.getAttribute('height')),
+      ]).toEqual(drawing);
+      // Bottom centre of the box: the drawing's tip is the anchor.
+      expect(svg.parentElement!.className).toBe(
+        'flex size-full items-end justify-center',
+      );
+    },
+  );
+
+  it('o pino selecionado desenha a foto da ONG recebida', () => {
+    const { html } = pinIcon('selected', 'Patas', '/img/patas.webp').options;
+
+    expect(html).toContain('href="/img/patas.webp"');
   });
 
   it('o ícone do cluster tem 44 px', () => {

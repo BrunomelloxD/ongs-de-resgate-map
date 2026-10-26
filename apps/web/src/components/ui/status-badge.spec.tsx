@@ -55,4 +55,18 @@ describe('StatusBadge', () => {
     expect(badge.className).toContain('bg-surface-2');
     expect(badge.className).toContain('extra');
   });
+
+  it.each([
+    ['open', 'lucide-clock'],
+    ['closed', 'lucide-clock'],
+    ['available', 'lucide-circle-check'],
+    ['unavailable', 'lucide-lock'],
+  ] as const)(
+    '%s usa o ícone do Badge do Design System (%s)',
+    (variant, icon) => {
+      const { container } = render(<StatusBadge variant={variant} />);
+
+      expect(container.querySelector('svg')).toHaveClass(icon);
+    },
+  );
 });

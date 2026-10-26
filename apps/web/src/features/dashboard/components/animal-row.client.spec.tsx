@@ -57,6 +57,22 @@ describe('AnimalRow', () => {
     );
   });
 
+  it('PERF-02/T175: a capa de 64 px tem srcset com as 3 variantes, width, height e lazy', () => {
+    const animal = makeMyAnimal();
+    renderRow(vi.fn(), animal);
+    const [cover] = animal.images;
+    const img = screen.getByRole('img', { name: cover!.alt });
+
+    expect(img).toHaveAttribute(
+      'srcset',
+      `${cover!.thumbUrl} 160w, ${cover!.mediumUrl} 600w, ${cover!.url} 1200w`,
+    );
+    expect(img).toHaveAttribute('sizes', '64px');
+    expect(img).toHaveAttribute('width', '64');
+    expect(img).toHaveAttribute('height', '64');
+    expect(img).toHaveAttribute('loading', 'lazy');
+  });
+
   it('sem foto mostra o marcador no lugar da capa', () => {
     renderRow(vi.fn(), makeMyAnimal({ images: [] }));
 

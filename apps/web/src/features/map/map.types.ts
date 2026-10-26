@@ -13,3 +13,20 @@ export type MapSpecies = 'DOG' | 'CAT';
 
 /** RN-09: the only radii the map offers. */
 export type RadiusKm = 5 | 10 | 25;
+
+/**
+ * The "Cidade ou CEP" search of the location feature, handed in by `app/`
+ * (a feature doesn't import another). It reports a place, never to the server (SEC-01).
+ */
+export interface PlaceSearchProps {
+  label: string;
+  /** `bar`: the floating pill of the phone; `field`: a labelled field. */
+  variant?: 'field' | 'bar';
+  submitLabel?: string;
+  submitVariant?: 'default' | 'outline';
+  /** Inside the bar, after the text. */
+  trailing?: React.ReactNode;
+  onPlace: (place: { lat: number; lng: number }) => void;
+}
+
+export type PlaceSearch = React.ComponentType<PlaceSearchProps>;

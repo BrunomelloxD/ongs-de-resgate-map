@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { MapPageContainer, mapDictionary } from '@/features/map';
+import { MapPlaceSearch } from './map-place-search.client';
 
 export const metadata: Metadata = {
   title: mapDictionary.metaTitle,
@@ -12,7 +13,7 @@ export default function MapRoute() {
     <main className="flex min-h-0 flex-1 flex-col text-fg">
       <h1 className="sr-only">{mapDictionary.mapLabel}</h1>
       <Suspense fallback={null}>
-        <MapPageContainer />
+        <MapPageContainer PlaceSearch={MapPlaceSearch} />
       </Suspense>
     </main>
   );

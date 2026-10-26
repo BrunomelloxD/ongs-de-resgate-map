@@ -22,6 +22,7 @@ export function makeMyAnimal(overrides: Partial<MyAnimal> = {}): MyAnimal {
   const image = (imageId: string) => ({
     id: imageId,
     url: `/img/ngos/${NGO_ID}/images/${imageId}-1200.webp`,
+    mediumUrl: `/img/ngos/${NGO_ID}/images/${imageId}-600.webp`,
     thumbUrl: `/img/ngos/${NGO_ID}/images/${imageId}-160.webp`,
     width: 1200,
     height: 900,

@@ -19,6 +19,13 @@ describe('AnimalGallery', () => {
     expect(mainImage()).toHaveAttribute('height', '900');
   });
 
+  it('PERF-02/T175: a foto principal é sempre a de 1200 px, sem srcset', () => {
+    render(<AnimalGallery images={IMAGES} name="Caramelo" />);
+
+    expect(mainImage().getAttribute('src')).toMatch(/-1200\.webp$/);
+    expect(mainImage()).not.toHaveAttribute('srcset');
+  });
+
   it('ANI-01: miniaturas de 160 px, lazy, com a atual marcada', () => {
     render(<AnimalGallery images={IMAGES} name="Caramelo" />);
     const thumbs = screen.getAllByRole('button');

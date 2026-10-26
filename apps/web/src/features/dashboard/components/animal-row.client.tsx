@@ -6,6 +6,7 @@ import { useOptimistic, useState, useTransition } from 'react';
 import { useAnnounce } from '@/components/ui/live-region.client';
 import { Switch } from '@/components/ui/switch';
 import { formatAge } from '@/lib/format';
+import { animalSrcSet } from '@/lib/image-srcset';
 import { cn } from '@/lib/utils';
 import { dashboardDictionary } from '../dashboard.dictionary';
 import type { MyAnimal, ToggleAvailability } from '../dashboard.types';
@@ -69,6 +70,8 @@ export function AnimalRow({ animal, onToggle, className }: AnimalRowProps) {
             // The api already serves WebP (PERF-02); next/image would re-encode it.
             <img
               src={cover.thumbUrl}
+              srcSet={animalSrcSet(cover)}
+              sizes="64px"
               alt={cover.alt}
               width={64}
               height={64}

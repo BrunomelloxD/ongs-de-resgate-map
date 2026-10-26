@@ -1,7 +1,7 @@
 'use client';
 
-import { Chip, ChipGroup } from '@/components/ui/chip';
-import { Switch } from '@/components/ui/switch';
+import { Chip } from '@/components/ui/chip';
+import { ChipSelect } from '@/components/ui/chip-select';
 import { cn } from '@/lib/utils';
 import {
   DEFAULT_ANIMAL_FILTERS,
@@ -20,53 +20,75 @@ export interface AnimalFiltersProps {
   className?: string;
 }
 
-/** Species, sex and size combine (NGO-06); "Só disponíveis" starts on (NGO-05). */
+const isDefault = ({ species, sex, size, available }: NgoAnimalFilters) =>
+  !species && !sex && !size && available;
+
+/**
+ * Figcraft 04 (O-06, C-15): "Espécie ▾", "Sexo ▾", "Porte ▾" and "✓ Só
+ * disponíveis" in one row. The three combine (NGO-06); "Só disponíveis" starts
+ * on (NGO-05). "Limpar filtros" only shows with a filter changed.
+ */
 export function AnimalFilters({
   value,
   onChange,
   className,
 }: AnimalFiltersProps) {
-  function group<K extends 'species' | 'sex' | 'size'>(
+  function dropdown<K extends 'species' | 'sex' | 'size'>(
     key: K,
     label: string,
+    all: string,
     options: readonly NonNullable<NgoAnimalFilters[K]>[],
     names: Record<NonNullable<NgoAnimalFilters[K]>, string>,
   ) {
+    const chosen = value[key];
     return (
-      <ChipGroup label={label}>
-        {options.map((option) => (
-          <Chip
-            key={option}
-            pressed={value[key] === option}
-            // One value per filter: pressing the chosen one clears it.
-            onPressedChange={(on) =>
-              onChange({ ...value, [key]: on ? option : undefined })
-            }
-          >
-            {names[option]}
-          </Chip>
-        ))}
-      </ChipGroup>
+      <ChipSelect
+        label={label}
+        value={chosen ?? ''}
+        display={chosen ? names[chosen] : label}
+        active={chosen !== undefined}
+        options={[
+          { value: '', label: all },
+          ...options.map((option) => ({ value: option, label: names[option] })),
+        ]}
+        // One value per filter; "all" clears it.
+        onValueChange={(next) =>
+          onChange({
+            ...value,
+            [key]: next === '' ? undefined : (next as NgoAnimalFilters[K]),
+          })
+        }
+      />
     );
   }
 
   return (
     <section
       aria-label={t.filters}
-      className={cn('flex flex-col gap-4', className)}
+      className={cn('flex flex-col items-start gap-2', className)}
     >
-      {group('species', t.species, SPECIES, t.speciesOptions)}
-      {group('sex', t.sex, SEXES, t.sexOptions)}
-      {group('size', t.size, SIZES, t.sizeOptions)}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 font-semibold">
-          <Switch
-            aria-label={t.onlyAvailable}
-            checked={value.available}
-            onCheckedChange={(available) => onChange({ ...value, available })}
-          />
-          <span aria-hidden="true">{t.onlyAvailable}</span>
-        </div>
+      <div
+        data-slot="animal-filters-row"
+        className="-mx-4 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto px-4 py-1 lg:mx-0 lg:w-full lg:flex-wrap lg:overflow-visible lg:px-0"
+      >
+        {dropdown(
+          'species',
+          t.species,
+          t.allSpecies,
+          SPECIES,
+          t.speciesOptions,
+        )}
+        {dropdown('sex', t.sex, t.allSexes, SEXES, t.sexOptions)}
+        {dropdown('size', t.size, t.allSizes, SIZES, t.sizeOptions)}
+        <Chip
+          pressed={value.available}
+          onPressedChange={(available) => onChange({ ...value, available })}
+          className="shrink-0"
+        >
+          {t.onlyAvailable}
+        </Chip>
+      </div>
+      {!isDefault(value) && (
         <button
           type="button"
           onClick={() => onChange(DEFAULT_ANIMAL_FILTERS)}
@@ -74,7 +96,7 @@ export function AnimalFilters({
         >
           {t.clear}
         </button>
-      </div>
+      )}
     </section>
   );
 }

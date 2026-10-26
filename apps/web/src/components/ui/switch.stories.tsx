@@ -23,7 +23,25 @@ export const Off: Story = {
   },
 };
 
-export const On: Story = { args: { defaultChecked: true } };
+export const On: Story = {
+  args: { defaultChecked: true },
+  play: async ({ canvasElement }) => {
+    const track = canvasElement.querySelector('[data-slot="switch"] > span')!;
+    // Design System Toggle/On: 48×28 track in Disponível.
+    await expect(getComputedStyle(track).width).toBe('48px');
+    await expect(getComputedStyle(track).height).toBe('28px');
+  },
+};
+
+export const OffTrack: Story = {
+  play: async ({ canvasElement }) => {
+    const track = canvasElement.querySelector('[data-slot="switch"] > span')!;
+    // Design System Toggle/Off: grey #7D8580 track, not the light beige.
+    await expect(getComputedStyle(track).backgroundColor).toBe(
+      'rgb(125, 133, 128)',
+    );
+  },
+};
 export const Disabled: Story = { args: { disabled: true } };
 export const DisabledOn: Story = {
   args: { disabled: true, defaultChecked: true },

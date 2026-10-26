@@ -1,3 +1,5 @@
+import type { Schemas } from '@repo/api-client';
+
 /** What `uploadNgoImage` answers: the new image, or the message to show. */
 export type UploadNgoImageResult =
   { ok: true; imageUrl: string | null } | { ok: false; error: string };
@@ -62,4 +64,44 @@ export interface DayHours {
   closed: boolean;
   opensAt: string | null;
   closesAt: string | null;
+}
+
+export type MyNgo = Schemas['NgoMeDto'];
+
+/** The profile form as typed (masked WhatsApp and CEP), flat so field ids match (PROF-01). */
+export interface ProfileValues extends AddressFieldsValues {
+  legalName: string;
+  description: string;
+  email: string;
+  whatsapp: string;
+  openingHours: DayHours[];
+}
+
+export type ProfileField = Exclude<keyof ProfileValues, 'openingHours'>;
+
+export interface ProfileErrors {
+  fields: Partial<Record<ProfileField, string>>;
+  /** Error of a day, by `dayOfWeek`. */
+  hours: Partial<Record<number, string>>;
+}
+
+/** What `updateProfile` answers (PROF-04). */
+export type UpdateProfileResult =
+  | { ok: true; message: string }
+  | { ok: false; errors: ProfileErrors; error: string | null };
+
+export type ChangePasswordField =
+  'currentPassword' | 'password' | 'confirmation';
+
+/** `useActionState` state of the password change (PROF-05, PROF-06). */
+export interface ChangePasswordState {
+  fieldErrors: Partial<Record<ChangePasswordField, string>>;
+  formError?: string;
+  /** Set on a 204; a new value each time, so the form clears its fields. */
+  success?: { message: string; at: number };
+}
+
+/** What `deleteAccount` answers when the account stays (PROF-08). */
+export interface DeleteAccountResult {
+  error: string;
 }

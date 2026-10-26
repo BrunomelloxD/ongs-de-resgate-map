@@ -1,20 +1,31 @@
 import { Toggle } from '@base-ui/react/toggle';
+import { Check } from 'lucide-react';
 import { useId } from 'react';
 import { cn } from '@/lib/utils';
 
 export type ChipProps = Toggle.Props;
 
-/** Toggle button (`aria-pressed`) for filters. Base UI handles Space and Enter. */
-export function Chip({ className, ...props }: ChipProps) {
+/**
+ * Design System "Chip": toggle button (`aria-pressed`) for filters, with ✓ when
+ * selected. Base UI handles Space and Enter.
+ */
+export function Chip({ className, children, ...props }: ChipProps) {
   return (
     <Toggle
       data-slot="chip"
       className={cn(
-        'touch-target inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm font-semibold whitespace-nowrap text-fg transition-colors select-none hover:bg-subtle disabled:pointer-events-none disabled:opacity-50 data-[pressed]:border-brand-deep data-[pressed]:bg-brand-deep data-[pressed]:text-on-brand-deep',
+        'group/chip touch-target inline-flex items-center justify-center gap-1.5 rounded-full border-[1.5px] border-line bg-surface px-4 text-sm font-semibold whitespace-nowrap text-fg transition-colors select-none hover:bg-subtle disabled:pointer-events-none disabled:opacity-50 data-[pressed]:border-brand-deep data-[pressed]:bg-brand-deep data-[pressed]:text-on-brand-deep',
         className,
       )}
       {...props}
-    />
+    >
+      <Check
+        aria-hidden="true"
+        data-slot="chip-check"
+        className="hidden size-4 shrink-0 group-data-[pressed]/chip:block"
+      />
+      {children}
+    </Toggle>
   );
 }
 

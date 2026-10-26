@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { AppBar } from '@/components/ui/app-bar';
 import { getEnv } from '@/lib/env';
 import { deleteAnimal } from '../actions/delete-animal';
 import { saveAnimal } from '../actions/save-animal';
@@ -31,18 +30,12 @@ export function AnimalFormContainer({
 }: AnimalFormContainerProps) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-start gap-2">
-        <Link
-          href={DASHBOARD_PATH}
-          className="touch-target inline-flex items-center gap-2 rounded-full font-semibold text-brand-text underline outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus"
-        >
-          <ArrowLeft aria-hidden="true" className="size-5" />
-          {t.back}
-        </Link>
-        <h1 className="font-heading text-4xl font-extrabold">
-          {animal ? t.editTitle(animal.name) : t.newTitle}
-        </h1>
-      </div>
+      {/* DIRTY-01: the link asks before leaving a form with changes. */}
+      <AppBar
+        title={animal ? t.editTitle(animal.name) : t.newTitle}
+        back={{ href: DASHBOARD_PATH, label: t.back }}
+        icon="close"
+      />
       <AnimalForm
         animal={animal}
         maxPhotos={maxPhotos}

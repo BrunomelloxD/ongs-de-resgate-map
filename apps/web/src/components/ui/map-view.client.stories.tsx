@@ -113,5 +113,12 @@ export const SpreadPinsWithVisitor: Story = {
     await expect(
       canvas.getByRole('img', { name: 'Sua localização' }),
     ).toBeVisible();
+    // A11Y-07 (T177): the real Leaflet zoom buttons, in Portuguese.
+    for (const name of ['Aproximar', 'Afastar']) {
+      await expect(canvas.getByRole('button', { name })).toHaveAttribute(
+        'title',
+        name,
+      );
+    }
   },
 };

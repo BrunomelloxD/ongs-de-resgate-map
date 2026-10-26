@@ -28,6 +28,8 @@ const meta = {
     },
     hasAnimals: true,
     whatsappUrl: makeNgo().whatsappUrl,
+    ngoName: 'Patas do Bairro',
+    counts: { total: 12, available: 9 },
     animalHref: (id: string) => `/ong/patas-do-bairro/animais/${id}`,
     pageHref: (page: number) => `/ong/patas-do-bairro?page=${page}`,
     clearHref: '/ong/patas-do-bairro',
@@ -55,6 +57,11 @@ export const NgoWithoutAnimals: Story = {
   args: {
     hasAnimals: false,
     page: { data: [], meta: { total: 0, page: 1, limit: 12, last_page: 1 } },
+  },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole('link', { name: 'Perguntar no WhatsApp' }),
+    ).toBeVisible();
   },
 };
 

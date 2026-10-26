@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   output: 'standalone',
+  // SEC-02/SEC-08: the dev server logs each request line, query included; the map
+  // search must never log its bbox, nor a reset link its token. Production doesn't log requests.
+  // It also logs each Server Function with its arguments (e-mails, the reset token): off.
+  logging: {
+    incomingRequests: { ignore: [/^\/map\/ngos/, /^\/recuperar-senha\/./] },
+    serverFunctions: false,
+  },
   experimental: {
     // Photos go through a Server Action (AD-001): file limit + 1 MB of multipart.
     serverActions: {

@@ -54,6 +54,18 @@ describe('Chip', () => {
     );
   });
 
+  it('selecionado mostra o ✓ decorativo (Chip/Selected do Design System)', () => {
+    const { container } = render(<Chip pressed>Aberta agora</Chip>);
+    const check = container.querySelector('[data-slot="chip-check"]')!;
+
+    expect(screen.getByRole('button', { name: 'Aberta agora' })).toBeVisible();
+    expect(check).toHaveAttribute('aria-hidden', 'true');
+    expect(check.getAttribute('class')).toContain(
+      'group-data-[pressed]/chip:block',
+    );
+    expect(check.getAttribute('class')).toContain('hidden');
+  });
+
   it('desabilitado não alterna e tem alvo mínimo de 44px', async () => {
     render(<Chip disabled>Filhotes</Chip>);
     const chip = screen.getByRole('button', { name: 'Filhotes' });

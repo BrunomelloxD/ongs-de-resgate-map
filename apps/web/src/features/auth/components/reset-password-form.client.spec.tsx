@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ResetPasswordState } from '../auth.types';
 import { ResetPasswordForm } from './reset-password-form.client';
@@ -63,11 +63,10 @@ describe('ResetPasswordForm', () => {
 
     await submit();
 
-    expect(
-      await screen.findByRole('heading', {
-        name: 'Este link expirou ou já foi usado.',
-      }),
-    ).toHaveFocus();
+    const gone = await screen.findByRole('heading', {
+      name: 'Este link expirou ou já foi usado.',
+    });
+    await waitFor(() => expect(gone).toHaveFocus());
     expect(
       screen.getByRole('link', { name: 'Pedir outro link' }),
     ).toHaveAttribute('href', '/recuperar-senha');
@@ -90,7 +89,9 @@ describe('ResetPasswordForm', () => {
     expect(
       screen.getByLabelText('Confirme a nova senha'),
     ).toHaveAccessibleDescription('As senhas não conferem.');
-    expect(screen.getByLabelText('Confirme a nova senha')).toHaveFocus();
+    await waitFor(() =>
+      expect(screen.getByLabelText('Confirme a nova senha')).toHaveFocus(),
+    );
   });
 
   it('o erro da senha fica ligado ao campo, junto com as regras', async () => {
@@ -101,7 +102,9 @@ describe('ResetPasswordForm', () => {
     await submit();
 
     await screen.findByRole('region', { name: 'Corrija para continuar' });
-    expect(screen.getByLabelText('Nova senha')).toHaveFocus();
+    await waitFor(() =>
+      expect(screen.getByLabelText('Nova senha')).toHaveFocus(),
+    );
     expect(screen.getByLabelText('Nova senha')).toHaveAccessibleDescription(
       expect.stringContaining('A senha precisa de ao menos um número.'),
     );
@@ -126,7 +129,9 @@ describe('ResetPasswordForm', () => {
         name: 'Não foi possível trocar a senha agora. Tente de novo.',
       }),
     ).toHaveAttribute('href', '#reset-password');
-    expect(screen.getByLabelText('Nova senha')).toHaveFocus();
+    await waitFor(() =>
+      expect(screen.getByLabelText('Nova senha')).toHaveFocus(),
+    );
   });
 
   it('enquanto envia, o botão fica desabilitado', async () => {

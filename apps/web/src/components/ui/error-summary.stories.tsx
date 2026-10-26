@@ -50,9 +50,25 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const WithErrors: Story = {
-  play: async ({ canvas }) => {
+  play: async ({ canvas, canvasElement }) => {
+    const summary = canvasElement.querySelector('[data-slot="error-summary"]')!;
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--error-soft)';
+    document.body.append(probe);
+    await expect(getComputedStyle(summary).backgroundColor).toBe(
+      getComputedStyle(probe).color,
+    );
+    probe.remove();
+    await expect(getComputedStyle(summary).borderTopWidth).toBe('0px');
     await userEvent.click(canvas.getByRole('button', { name: 'Enviar' }));
     await expect(canvas.getByLabelText('E-mail')).toHaveFocus();
+  },
+};
+
+export const OneError: Story = {
+  args: {
+    title: 'Corrija 1 campo para continuar',
+    errors: [{ fieldId: 'cnpj', message: 'O CNPJ informado não é válido.' }],
   },
 };
 

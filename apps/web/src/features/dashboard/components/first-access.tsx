@@ -32,6 +32,8 @@ export function FirstAccess({ ngo, animalCount, className }: FirstAccessProps) {
       <EmptyState
         title={t.title(ngo.legalName)}
         description={t.description}
+        illustration={<Plus />}
+        illustrationTone="brand"
         actions={[
           <Link
             key="cta"

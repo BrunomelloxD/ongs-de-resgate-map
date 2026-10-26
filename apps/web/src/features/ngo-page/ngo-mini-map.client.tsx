@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useEffect, useRef, useState } from 'react';
 import { bboxForRadius } from '@/lib/geo';
 import { ngoPageDictionary } from './ngo-page.dictionary';
 
@@ -13,6 +14,8 @@ const MapView = dynamic(
 );
 
 const RADIUS_KM = 0.4;
+// PERF-04 (T176): Leaflet and the tiles start a little before the map scrolls into view.
+const NEAR_VIEW = { rootMargin: '200px' };
 
 export interface NgoMiniMapProps {
   tileUrl: string;
@@ -35,10 +38,36 @@ export function NgoMiniMap({
   lng,
   openNow,
 }: NgoMiniMapProps) {
+  const frame = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+
+  useEffect(() => {
+    // Back from a hidden <Activity>, the map is already there: nothing to observe.
+    if (near) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      setNear(true);
+    }, NEAR_VIEW);
+    observer.observe(frame.current!);
+    return () => observer.disconnect();
+  }, [near]);
+
   const [minLng, minLat, maxLng, maxLat] = bboxForRadius(
     { lat, lng },
     RADIUS_KM,
   );
+
+  if (!near) {
+    // Same box as the map, so nothing moves when it arrives.
+    return (
+      <div
+        ref={frame}
+        data-slot="ngo-mini-map-frame"
+        aria-hidden="true"
+        className="size-full bg-subtle"
+      />
+    );
+  }
 
   return (
     <MapView

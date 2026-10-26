@@ -10,7 +10,7 @@ import {
   focusFirstError,
   type ErrorSummaryItem,
 } from '@/components/ui/error-summary';
-import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input.client';
 import { Label } from '@/components/ui/label';
 import { PasswordRules } from '@/components/ui/password-rules';
 import { authDictionary } from '../auth.dictionary';
@@ -102,10 +102,9 @@ export function ResetPasswordForm({ action }: ResetPasswordFormProps) {
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={IDS.password}>{t.reset.password}</Label>
-          <Input
+          <PasswordInput
             id={IDS.password}
             name="password"
-            type="password"
             autoComplete="new-password"
             required
             value={password}
@@ -129,10 +128,9 @@ export function ResetPasswordForm({ action }: ResetPasswordFormProps) {
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={IDS.confirmation}>{t.reset.confirmation}</Label>
-          <Input
+          <PasswordInput
             id={IDS.confirmation}
             name="confirmation"
-            type="password"
             autoComplete="new-password"
             required
             aria-invalid={fieldErrors.confirmation ? true : undefined}
@@ -145,12 +143,7 @@ export function ResetPasswordForm({ action }: ResetPasswordFormProps) {
           )}
         </div>
 
-        <Button
-          type="submit"
-          size="lg"
-          disabled={pending}
-          className="rounded-full text-base font-semibold"
-        >
+        <Button type="submit" size="lg" disabled={pending}>
           {pending ? t.reset.pending : t.reset.submit}
         </Button>
       </form>

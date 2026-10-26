@@ -34,16 +34,20 @@ export class NgoPage {
     return this.page.locator('[data-slot="animal-card"]');
   }
 
+  /** T189 (O-06): a toggle chip, pressed when on. */
   get onlyAvailable() {
-    return this.page.getByRole('switch', { name: t.animals.onlyAvailable });
+    return this.page.getByRole('button', { name: t.animals.onlyAvailable });
   }
 
-  chip(name: string) {
-    return this.page.getByRole('button', { name, exact: true });
+  /** T189 (O-06): species, sex and size are dropdown chips (native selects). */
+  filter(name: string) {
+    return this.page.getByRole('combobox', { name });
   }
 
-  get emptyNgoTitle() {
-    return this.page.getByRole('heading', { name: t.animals.emptyNgo.title });
+  emptyNgoTitle(ngoName: string) {
+    return this.page.getByRole('heading', {
+      name: t.animals.emptyNgo.title(ngoName),
+    });
   }
 
   get notFoundTitle() {

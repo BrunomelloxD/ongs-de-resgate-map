@@ -2,6 +2,7 @@
 
 import { Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { ActionBar } from '@/components/ui/action-bar';
 import { Button } from '@/components/ui/button';
 import {
   ErrorSummary,
@@ -11,6 +12,8 @@ import {
 } from '@/components/ui/error-summary';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PinPhoto } from '@/components/ui/pin-photo';
+import { Textarea } from '@/components/ui/textarea';
 import { isValidCnpj, maskCnpj, normalizeCnpj } from '@/lib/masks';
 import { isAcceptedNgoImage } from '@/lib/ngo-image';
 import { aboutSchema } from '../schemas/signup.schema';
@@ -233,7 +236,7 @@ export function StepAbout({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={IDS.description}>{t.about.description}</Label>
-          <textarea
+          <Textarea
             id={IDS.description}
             name="description"
             rows={5}
@@ -241,7 +244,6 @@ export function StepAbout({
             onChange={(e) => change('description', e.target.value)}
             aria-invalid={errors.description ? true : undefined}
             aria-describedby={describedBy('description', COUNTER_ID)}
-            className="min-h-32 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30"
           />
           <p id={COUNTER_ID} className="text-sm text-fg-secondary">
             {t.about.counter(values.description.length)}
@@ -250,7 +252,7 @@ export function StepAbout({
         </div>
 
         <div className="flex flex-col gap-2">
-          <span id={IMAGE_LABEL_ID} className="text-sm font-medium">
+          <span id={IMAGE_LABEL_ID} className="text-sm font-bold">
             {t.about.image}
           </span>
           <input
@@ -267,10 +269,16 @@ export function StepAbout({
           />
           {image && preview ? (
             <div className="flex items-center gap-4 rounded-2xl bg-surface p-4 peer-focus-visible:ring-3 peer-focus-visible:ring-ring">
-              <img
-                src={preview}
-                alt={t.about.imagePreview}
-                className="size-20 shrink-0 rounded-xl object-cover"
+              <PinPhoto
+                width={64}
+                image={
+                  <img
+                    src={preview}
+                    alt={t.about.imagePreview}
+                    width={64}
+                    height={83}
+                  />
+                }
               />
               <div className="flex min-w-0 flex-col items-start gap-1">
                 <p className="truncate font-semibold">{image.name}</p>
@@ -306,14 +314,11 @@ export function StepAbout({
           )}
         </div>
 
-        <Button
-          type="submit"
-          size="lg"
-          disabled={checking}
-          className="rounded-full text-base font-semibold"
-        >
-          {checking ? t.about.checking : t.about.submit}
-        </Button>
+        <ActionBar>
+          <Button type="submit" size="lg" disabled={checking}>
+            {checking ? t.about.checking : t.about.submit}
+          </Button>
+        </ActionBar>
       </form>
     </div>
   );

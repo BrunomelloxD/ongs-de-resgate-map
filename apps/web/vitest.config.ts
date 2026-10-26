@@ -17,6 +17,8 @@ function storybookProject(name: string, theme: 'light' | 'dark') {
       name,
       provide: { storybookTheme: theme },
       setupFiles: ['./.storybook/vitest.setup.ts'],
+      // The first story of a file also loads the preview annotations (~8 s under load).
+      testTimeout: 30_000,
       browser: {
         enabled: true,
         headless: true,
@@ -38,6 +40,8 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    // Half the cores: the gate runs other tasks beside this one (T178).
+    maxWorkers: '50%',
     projects: [
       {
         // Only unit tests count toward the 100% coverage.
@@ -47,6 +51,8 @@ export default defineConfig({
           environment: 'jsdom',
           include: ['src/**/*.spec.{ts,tsx}', 'scripts/**/*.spec.ts'],
           setupFiles: ['./test/setup.ts'],
+          // Long forms typed key by key (animal-form) pass 5 s on a busy machine.
+          testTimeout: 15_000,
         },
       },
       storybookProject('storybook', 'light'),

@@ -114,7 +114,7 @@ test.describe('busca manual', () => {
 
     await location.cityField.fill('Santa Cruz');
 
-    await expect(location.cityOption('Santa Cruz, RN')).toBeVisible();
+    await expect(location.cityOption('Santa Cruz Cidade · RN')).toBeVisible();
     await expect(page.getByRole('option')).toHaveCount(5);
     expect(await seriousAxeViolations(page)).toEqual([]);
   });
@@ -125,7 +125,7 @@ test.describe('busca manual', () => {
     const location = new LocationPage(page);
 
     await location.cityField.fill('São Paulo');
-    await location.cityOption('São Paulo, SP').click();
+    await location.cityOption('São Paulo Cidade · SP').click();
 
     await page.waitForURL(`**/mapa#c=${SAO_PAULO.lat},${SAO_PAULO.lng}&r=5`);
     expect(await location.geolocationCalls()).toEqual([]);

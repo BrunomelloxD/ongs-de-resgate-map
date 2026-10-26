@@ -62,7 +62,62 @@ beforeEach(() => {
   URL.revokeObjectURL = vi.fn();
 });
 
+/** Whether closing or reloading the tab now would ask first (DIRTY-02). */
+function beforeUnloadPrevented() {
+  const event = new Event('beforeunload', { cancelable: true });
+  window.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+
 describe('AnimalForm', () => {
+  describe('DIRTY-01/02/03: alterações não salvas', () => {
+    it('ao abrir (novo ou edição), sem alterações, não avisa', () => {
+      const { view } = setup();
+      expect(beforeUnloadPrevented()).toBe(false);
+      view.unmount();
+
+      setup({ animal: makeMyAnimal() });
+      expect(beforeUnloadPrevented()).toBe(false);
+    });
+
+    it('editar um campo marca sujo; desfazer volta a limpo', async () => {
+      const { user } = setup({ animal: makeMyAnimal() });
+
+      await user.type(screen.getByLabelText('Nome'), 'x');
+      expect(beforeUnloadPrevented()).toBe(true);
+      await user.type(screen.getByLabelText('Nome'), '{Backspace}');
+
+      expect(beforeUnloadPrevented()).toBe(false);
+    });
+
+    it('acrescentar uma foto marca sujo', async () => {
+      const { user } = setup();
+
+      await user.upload(fileInput(), photo());
+      await screen.findByRole('group', { name: 'Foto 1 de 1' });
+
+      expect(beforeUnloadPrevented()).toBe(true);
+    });
+
+    it('salvar limpa (o sucesso leva ao /painel); uma falha volta a sujo', async () => {
+      let fail!: (result: SaveAnimalError) => void;
+      const saveAnimal = vi.fn<SaveAnimal>(
+        () => new Promise((resolve) => (fail = resolve)),
+      );
+      const { user } = setup({ saveAnimal });
+      await user.upload(fileInput(), photo());
+      await fillRequired(user);
+      await waitFor(() => expect(screen.queryByText('Enviando…')).toBeNull());
+      expect(beforeUnloadPrevented()).toBe(true);
+
+      await user.click(screen.getByRole('button', { name: 'Salvar animal' }));
+      expect(beforeUnloadPrevented()).toBe(false);
+
+      await act(async () => fail({ ok: false, fieldErrors: {} }));
+      expect(beforeUnloadPrevented()).toBe(true);
+    });
+  });
+
   it('A11Y-04/AFORM-06: todos os campos têm rótulo visível; raça vem com "SRD (vira-lata)"', () => {
     setup();
 

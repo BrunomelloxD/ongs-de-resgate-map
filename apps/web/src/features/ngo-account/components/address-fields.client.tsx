@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState, type ComponentType } from 'react';
 import { FieldError } from '@/components/ui/error-summary';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import type { LatLngTuple } from '@/components/ui/map-view.client';
 import type { PinPickerProps } from '@/components/ui/pin-picker.client';
 import { maskCep, normalizeCep } from '@/lib/masks';
@@ -285,7 +286,7 @@ export function AddressFields({
         {textField('city', { autoComplete: 'address-level2' })}
         <div className="flex flex-col gap-2">
           <Label htmlFor={id('uf')}>{t.uf}</Label>
-          <select
+          <Select
             id={id('uf')}
             name="uf"
             value={values.uf}
@@ -298,10 +299,6 @@ export function AddressFields({
             }}
             aria-invalid={errors.uf ? true : undefined}
             aria-describedby={describedBy('uf')}
-            className={cn(
-              'min-h-11 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm',
-              ufLocked && 'bg-surface-2 opacity-100',
-            )}
           >
             <option value="">{t.ufPlaceholder}</option>
             {UFS.map((uf) => (
@@ -309,7 +306,7 @@ export function AddressFields({
                 {uf}
               </option>
             ))}
-          </select>
+          </Select>
           {fieldError('uf')}
         </div>
       </div>

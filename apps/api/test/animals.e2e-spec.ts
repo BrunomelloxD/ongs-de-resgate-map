@@ -244,7 +244,7 @@ describe('Animais (e2e)', () => {
       const created = await a.as
         .create({ ...ANIMAL, name: 'Bolinha', imageIds: [keep, drop] })
         .expect(201);
-      expect(keysOf(a.ngo.id).filter((k) => k.includes(drop))).toHaveLength(2);
+      expect(keysOf(a.ngo.id).filter((k) => k.includes(drop))).toHaveLength(3);
 
       const res = await a.as
         .update(created.body.id, {
@@ -262,7 +262,7 @@ describe('Animais (e2e)', () => {
       ]);
       expect(await prisma.animalImage.count({ where: { id: drop } })).toBe(0);
       expect(keysOf(a.ngo.id).filter((k) => k.includes(drop))).toEqual([]);
-      expect(keysOf(a.ngo.id).filter((k) => k.includes(keep))).toHaveLength(2);
+      expect(keysOf(a.ngo.id).filter((k) => k.includes(keep))).toHaveLength(3);
 
       await a.as.delete(created.body.id).expect(204);
     });
@@ -303,7 +303,8 @@ describe('Animais (e2e)', () => {
       const keys = keysOf(a.ngo.id).filter((key) =>
         photos.some((id) => key.includes(id)),
       );
-      expect(keys).toHaveLength(4);
+      // 2 photos × 3 variants (160, 600 and 1200, T174).
+      expect(keys).toHaveLength(6);
 
       await a.as.delete(created.body.id).expect(204);
 

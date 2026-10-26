@@ -4,6 +4,7 @@ import { ArrowLeft, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { PinPhoto } from '@/components/ui/pin-photo';
 import {
   ErrorSummary,
   FieldError,
@@ -74,9 +75,11 @@ export function ForgotPasswordForm({ action }: ForgotPasswordFormProps) {
   if (state.sentMessage) {
     return (
       <div className="flex flex-col gap-6">
-        <span className="flex size-16 items-center justify-center rounded-full bg-brand-deep text-brand">
-          <Mail aria-hidden="true" className="size-8" />
-        </span>
+        <PinPhoto
+          width={64}
+          icon={<Mail className="size-7" />}
+          className="bg-brand-deep text-brand"
+        />
         <h1
           ref={headingRef}
           tabIndex={-1}
@@ -122,12 +125,12 @@ export function ForgotPasswordForm({ action }: ForgotPasswordFormProps) {
       <Link
         href={LOGIN_PATH}
         aria-label={t.back}
-        className="touch-target inline-flex w-fit items-center justify-center rounded-full"
+        className="touch-target inline-flex w-fit items-center justify-center rounded-full lg:hidden"
       >
         <ArrowLeft aria-hidden="true" className="size-6" />
       </Link>
       <div className="flex flex-col gap-3">
-        <h1 className="text-4xl font-extrabold tracking-tight">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
           {t.forgot.title}
         </h1>
         <p className="text-lg text-fg-secondary">{t.forgot.lead}</p>
@@ -160,12 +163,7 @@ export function ForgotPasswordForm({ action }: ForgotPasswordFormProps) {
             <FieldError id={`${EMAIL_ID}-error`}>{state.fieldError}</FieldError>
           )}
         </div>
-        <Button
-          type="submit"
-          size="lg"
-          disabled={pending}
-          className="rounded-full text-base font-semibold"
-        >
+        <Button type="submit" size="lg" disabled={pending}>
           {pending ? t.forgot.pending : t.forgot.submit}
         </Button>
       </form>

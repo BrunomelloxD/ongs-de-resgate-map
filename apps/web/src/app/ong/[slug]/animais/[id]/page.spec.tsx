@@ -14,8 +14,21 @@ vi.mock('@/features/animal-page', () => ({
   animalMetadata: (animal: { name: string }) => ({
     title: `meta ${animal.name}`,
   }),
-  AnimalDetail: ({ animal }: { animal: { name: string } }) => (
-    <p>detalhe {animal.name}</p>
+  animalShare: (animal: { name: string }) => ({
+    title: animal.name,
+    text: `texto ${animal.name}`,
+    url: `https://web.test/${animal.name}`,
+  }),
+  AnimalDetail: ({
+    animal,
+    share,
+  }: {
+    animal: { name: string };
+    share?: { title: string; text: string; url: string };
+  }) => (
+    <p>
+      detalhe {animal.name} {share && `compartilha ${share.url}`}
+    </p>
   ),
 }));
 
@@ -36,6 +49,16 @@ describe('/ong/[slug]/animais/[id]', () => {
 
     expect(getAnimal).toHaveBeenCalledWith('patas-do-bairro', 'abc');
     expect(screen.getByRole('main')).toHaveTextContent('detalhe Caramelo');
+  });
+
+  it('SHARE-01: o detalhe recebe o "Compartilhar" com a URL canônica do animal', async () => {
+    getAnimal.mockResolvedValue(ANIMAL);
+
+    render(await AnimalRoute(props()));
+
+    expect(screen.getByRole('main')).toHaveTextContent(
+      'compartilha https://web.test/Caramelo',
+    );
   });
 
   it('ANI-06: null → notFound()', async () => {

@@ -7,3 +7,7 @@ export type {
   GeocodeResult,
   LookupCepResult,
 } from './location.types';
+export {
+  CityAutocomplete,
+  type CityAutocompleteProps,
+} from './components/city-autocomplete.client';

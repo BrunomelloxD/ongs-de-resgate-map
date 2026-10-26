@@ -46,6 +46,23 @@ describe('ErrorSummary', () => {
     expect(links[1]).toHaveAttribute('href', '#cnpj');
   });
 
+  it('segue o Alert/Erro do Design System: fundo Erro claro, sem borda, ícone e título', () => {
+    render(<Form />);
+
+    const summary = screen.getByRole('region');
+    expect(summary.className).toContain('bg-error-soft');
+    expect(summary.className).not.toMatch(/(^|\s)border(\s|-error)/);
+    expect(summary.querySelector(':scope > svg')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
+    expect(
+      within(summary).getByRole('heading', {
+        name: 'Corrija 2 erros para continuar',
+      }).className,
+    ).toContain('text-error-fg');
+  });
+
   it('sem erros, não renderiza nada', () => {
     render(<Form withErrors={false} />);
 

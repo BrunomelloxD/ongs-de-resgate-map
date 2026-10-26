@@ -14,6 +14,7 @@ export function makeImages(
   return IMAGE_IDS.slice(0, count).map((id) => ({
     id,
     url: `/img/ngos/${NGO_ID}/images/${id}-1200.webp`,
+    mediumUrl: `/img/ngos/${NGO_ID}/images/${id}-600.webp`,
     thumbUrl: `/img/ngos/${NGO_ID}/images/${id}-160.webp`,
     width: 1200,
     height: 900,

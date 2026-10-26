@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { SiteFooter } from '@/components/ui/site-footer';
+import { SiteHeader } from '@/components/ui/site-header';
 import {
   AnimalDetail,
   animalMetadata,
+  animalShare,
   getAnimal,
 } from '@/features/animal-page';
 
@@ -30,11 +33,15 @@ export default async function AnimalRoute({
   const animal = await load(params);
 
   return (
-    // The gutter goes on the full-width main, never on the max-w column (T166).
-    <main className="flex-1 px-gutter py-8">
-      <div className="mx-auto w-full max-w-6xl">
-        <AnimalDetail animal={animal} />
-      </div>
-    </main>
+    <>
+      <SiteHeader desktopOnly />
+      {/* The gutter goes on the full-width main, never on the max-w column (T166). */}
+      <main className="flex-1 px-gutter py-8">
+        <div className="mx-auto w-full max-w-6xl">
+          <AnimalDetail animal={animal} share={animalShare(animal)} />
+        </div>
+      </main>
+      <SiteFooter />
+    </>
   );
 }

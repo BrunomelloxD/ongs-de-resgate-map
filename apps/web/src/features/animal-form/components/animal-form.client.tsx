@@ -7,6 +7,7 @@ import {
   useState,
   useTransition,
 } from 'react';
+import { ActionBar } from '@/components/ui/action-bar';
 import { Button } from '@/components/ui/button';
 import {
   ErrorSummary,
@@ -16,6 +17,10 @@ import {
 } from '@/components/ui/error-summary';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Option } from '@/components/ui/option';
+import { Select } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useUnsavedChanges } from '@/components/ui/unsaved-changes.client';
 import { cn } from '@/lib/utils';
 import { animalFormDictionary } from '../animal-form.dictionary';
 import type {
@@ -64,9 +69,6 @@ const IDS: Record<AnimalField, string> = {
 };
 const errorId = (field: AnimalField) => `animal-${field}-error`;
 const COUNTER_ID = 'animal-description-counter';
-
-const FIELD_CLASS =
-  'min-h-11 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30';
 
 export interface AnimalFormProps {
   /** The animal being edited; null to create one. */
@@ -144,6 +146,9 @@ const initialPhotos = (animal: MyAnimal | null): Photo[] =>
     alt: image.alt,
   }));
 
+const photoKeys = (photos: Photo[]) =>
+  photos.map((photo) => photo.key).join(' ');
+
 function AnimalFormBody({
   animal,
   maxPhotos,
@@ -155,6 +160,10 @@ function AnimalFormBody({
   notice,
   onSubmitting,
 }: AnimalFormProps & { onSubmitting: (value: boolean) => void }) {
+  const [initial] = useState(() => ({
+    values: JSON.stringify(initialValues(animal)),
+    photos: photoKeys(initialPhotos(animal)),
+  }));
   const [values, setValues] = useState(() => initialValues(animal));
   const [photos, setPhotos] = useState(() => initialPhotos(animal));
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -162,6 +171,12 @@ function AnimalFormBody({
   const [attempt, setAttempt] = useState(0);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+
+  // DIRTY-01/02. While saving, a success redirects to /painel, so no warning.
+  const changed =
+    JSON.stringify(values) !== initial.values ||
+    photoKeys(photos) !== initial.photos;
+  useUnsavedChanges(changed && !pending);
   const generalRef = useRef<HTMLParagraphElement>(null);
 
   // A11Y-05: after a failed submit, focus the first field with an error.
@@ -255,7 +270,7 @@ function AnimalFormBody({
   ) {
     return (
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-medium">{legend}</legend>
+        <legend className="mb-2 text-sm font-bold">{legend}</legend>
         <div
           className={cn(
             'grid gap-2',
@@ -263,23 +278,18 @@ function AnimalFormBody({
           )}
         >
           {Object.entries(options).map(([option, text]) => (
-            <label
+            <Option
               key={option}
-              className="touch-target flex cursor-pointer items-center justify-center rounded-2xl border border-border bg-surface px-2 font-semibold text-fg has-checked:border-brand-deep has-checked:bg-brand-deep has-checked:text-on-brand-deep has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus has-aria-invalid:border-error"
+              id={`animal-${field}-${option}`}
+              name={field}
+              value={option}
+              checked={values[field] === option}
+              onChange={() => change(field, option as Values[K])}
+              aria-invalid={invalid(field)}
+              aria-describedby={describedBy(field)}
             >
-              <input
-                type="radio"
-                id={`animal-${field}-${option}`}
-                name={field}
-                value={option}
-                checked={values[field] === option}
-                onChange={() => change(field, option as Values[K])}
-                aria-invalid={invalid(field)}
-                aria-describedby={describedBy(field)}
-                className="sr-only"
-              />
               {text}
-            </label>
+            </Option>
           ))}
         </div>
         {fieldError(field)}
@@ -330,7 +340,7 @@ function AnimalFormBody({
           {textInput('ageValue', f.ageValue, { inputMode: 'numeric' })}
           <div className="flex flex-col gap-2">
             <Label htmlFor={IDS.ageUnit}>{f.ageUnit}</Label>
-            <select
+            <Select
               id={IDS.ageUnit}
               name="ageUnit"
               value={values.ageUnit}
@@ -339,21 +349,20 @@ function AnimalFormBody({
               }
               aria-invalid={invalid('ageUnit')}
               aria-describedby={describedBy('ageUnit')}
-              className={FIELD_CLASS}
             >
               {Object.entries(f.ageUnitOptions).map(([unit, text]) => (
                 <option key={unit} value={unit}>
                   {text}
                 </option>
               ))}
-            </select>
+            </Select>
             {fieldError('ageUnit')}
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={IDS.description}>{f.description}</Label>
-          <textarea
+          <Textarea
             id={IDS.description}
             name="description"
             rows={5}
@@ -362,22 +371,17 @@ function AnimalFormBody({
             onChange={(event) => change('description', event.target.value)}
             aria-invalid={invalid('description')}
             aria-describedby={describedBy('description', COUNTER_ID)}
-            className={cn(FIELD_CLASS, 'min-h-32 py-2')}
           />
           <p id={COUNTER_ID} className="text-sm text-fg-secondary">
             {f.counter(values.description.length)}
           </p>
           {fieldError('description')}
         </div>
-
-        <Button
-          type="submit"
-          size="lg"
-          disabled={pending}
-          className="rounded-full bg-brand text-base font-semibold text-on-brand hover:bg-brand/90"
-        >
-          {pending ? f.saving : animal ? f.update : f.create}
-        </Button>
+        <ActionBar>
+          <Button type="submit" size="lg" disabled={pending}>
+            {pending ? f.saving : animal ? f.update : f.create}
+          </Button>
+        </ActionBar>
       </form>
 
       {animal && (

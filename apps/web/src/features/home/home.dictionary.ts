@@ -25,5 +25,21 @@ export const homeDictionary = {
       },
     ],
   },
+  // Illustration of the hero (figcraft 01): a sample "Card/ONG Lista" and, on the phone, its chip.
+  sample: {
+    name: 'Patas do Bairro',
+    distance: '1,2 km',
+    hours: 'Hoje, 9h às 18h',
+  },
+  forNgos: {
+    title: 'Você cuida de animais resgatados?',
+    text: 'Cadastre sua ONG de graça, publique os animais disponíveis e receba os interessados direto no seu WhatsApp.',
+    /** Only on desktop, as in the figcraft. */
+    more: 'Você mantém o perfil e liga ou desliga a disponibilidade de cada animal com um toque.',
+    signup: 'Cadastrar minha ONG',
+    login: 'Já tenho conta. Entrar',
+  },
+  /** PROF-08: after `?conta=excluida`. */
+  accountDeleted: 'Conta excluída.',
   theme: { toDark: 'Usar tema escuro', toLight: 'Usar tema claro' },
 } as const;

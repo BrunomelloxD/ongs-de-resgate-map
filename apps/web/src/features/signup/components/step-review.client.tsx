@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { ActionBar } from '@/components/ui/action-bar';
 import { Button } from '@/components/ui/button';
+import { PinPhoto } from '@/components/ui/pin-photo';
 import { signupDictionary } from '../signup.dictionary';
 import type { ReviewValues, SignupData, SignupStep } from '../signup.types';
 import { stepPath } from '../steps';
@@ -110,12 +112,11 @@ export function StepReview({
 
       <Section title={t.review.about} step="about">
         {image && preview && (
-          <img
-            src={preview}
-            alt={t.review.image}
-            width={72}
-            height={72}
-            className="size-18 rounded-full object-cover"
+          <PinPhoto
+            width={56}
+            image={
+              <img src={preview} alt={t.review.image} width={56} height={73} />
+            }
           />
         )}
         <Item label={t.review.cnpj} value={about.cnpj} />
@@ -205,25 +206,14 @@ export function StepReview({
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            onClick={onBack}
-            className="rounded-full text-base font-semibold"
-          >
+        <ActionBar>
+          <Button type="button" variant="outline" size="lg" onClick={onBack}>
             {t.review.back}
           </Button>
-          <Button
-            type="submit"
-            size="lg"
-            disabled={!accepted || pending}
-            className="rounded-full text-base font-semibold"
-          >
+          <Button type="submit" size="lg" disabled={!accepted || pending}>
             {pending ? t.review.pending : t.review.submit}
           </Button>
-        </div>
+        </ActionBar>
       </form>
     </div>
   );

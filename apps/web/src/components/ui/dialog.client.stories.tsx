@@ -63,6 +63,10 @@ export const FocusIsTrapped: Story = {
       canvas.getByRole('button', { name: 'Excluir animal' }),
     );
     const dialog = await screen.findByRole('dialog');
+    // Base UI moves the initial focus a frame after the popup mounts.
+    await waitFor(() =>
+      expect(dialog).toContainElement(document.activeElement as HTMLElement),
+    );
     for (let i = 0; i < 6; i++) {
       await userEvent.tab();
       // Base UI's focus guards hand focus back to the popup; never to the page behind.

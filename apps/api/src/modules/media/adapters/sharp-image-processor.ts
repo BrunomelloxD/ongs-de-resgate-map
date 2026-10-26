@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import decodeHeic from 'heic-decode';
 import sharp, { type Sharp } from 'sharp';
 
-/** Animal photo: 160 and 1200 px wide. NGO image: square, 160 and 600 px. */
+/** Animal photo: 160, 600 and 1200 px wide. NGO image: square, 160 and 600 px. */
 export type ImageProfile = 'animal' | 'ngo';
 
 export interface ImageVariant {
@@ -36,8 +36,11 @@ const MAX_PIXELS = 40_000_000;
 const WEBP_QUALITY = 80;
 
 export const PROFILES = {
-  // AFORM-08 and AFORM-12.
-  animal: { formats: ['jpeg', 'png', 'webp', 'heic'], sizes: [160, 1200] },
+  // AFORM-08 and AFORM-12. 600 px for the cards (T174, PERF-02); the largest stays last.
+  animal: {
+    formats: ['jpeg', 'png', 'webp', 'heic'],
+    sizes: [160, 600, 1200],
+  },
   // SIGN-09 and SIGN-10: no HEIC for the NGO image.
   ngo: { formats: ['jpeg', 'png', 'webp'], sizes: [160, 600] },
 } as const satisfies Record<

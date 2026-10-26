@@ -51,4 +51,20 @@ describe('getApi', () => {
     expect(received.headers?.has('x-client-ip')).toBe(false);
     expect(received.headers?.has('authorization')).toBe(false);
   });
+
+  it('T177: uma chamada não usa Math.random (o Next acusa o valor instável ao pré-renderizar)', async () => {
+    // A plain fetch stub: MSW's interceptor draws its own Math.random() request ids.
+    const fetch = vi.fn(async (_request: Request) => Response.json({}));
+    vi.stubGlobal('fetch', fetch);
+    const random = vi.spyOn(Math, 'random');
+
+    await getApi({ clientIp: '203.0.113.5' }).GET('/health');
+
+    expect(random).not.toHaveBeenCalled();
+    expect(fetch.mock.calls[0]![0].headers.get('x-client-ip')).toBe(
+      '203.0.113.5',
+    );
+    random.mockRestore();
+    vi.unstubAllGlobals();
+  });
 });

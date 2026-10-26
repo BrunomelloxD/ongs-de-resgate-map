@@ -2,6 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useEffect } from 'react';
 import {
+  EMPTY_SIGNUP,
   SIGNUP_STORAGE_KEY,
   SignupProvider,
   useSignup,
@@ -100,12 +101,68 @@ const acceptAndCreate = async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Criar conta' }));
 };
 
+/** Whether closing or reloading the tab now would ask first (DIRTY-02). */
+function beforeUnloadPrevented() {
+  const event = new Event('beforeunload', { cancelable: true });
+  window.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.clear();
 });
 
 describe('SignupWizard', () => {
+  describe('DIRTY-01/02/03: alterações não salvas', () => {
+    it('sem nada digitado, não avisa; editar um campo marca sujo', async () => {
+      renderWizard('sobre', { data: EMPTY_SIGNUP });
+      await screen.findByRole('heading', { level: 1, name: 'Sobre a ONG' });
+      expect(beforeUnloadPrevented()).toBe(false);
+
+      await userEvent.type(screen.getByLabelText('Razão social'), 'Patas');
+
+      expect(beforeUnloadPrevented()).toBe(true);
+    });
+
+    it('a imagem escolhida também conta como alteração', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:preview');
+      URL.revokeObjectURL = vi.fn();
+      renderWizard('sobre', {
+        data: EMPTY_SIGNUP,
+        image: new File(['x'], 'logo.png', { type: 'image/png' }),
+      });
+      await screen.findByRole('heading', { level: 1, name: 'Sobre a ONG' });
+
+      expect(beforeUnloadPrevented()).toBe(true);
+    });
+
+    it('"Criar conta" com sucesso limpa (leva ao /painel)', async () => {
+      renderWizard('revisao');
+      await screen.findByRole('heading', { level: 1, name: 'Revisão' });
+      expect(beforeUnloadPrevented()).toBe(true);
+
+      await acceptAndCreate();
+
+      await waitFor(() => expect(beforeUnloadPrevented()).toBe(false));
+    });
+
+    it('"Criar conta" com erro continua sujo', async () => {
+      const createAccount = vi.fn(async (): Promise<CreateAccountError> => ({
+        ok: false,
+        step: null,
+        error: 'A demo atingiu o limite de ONGs.',
+      }));
+      renderWizard('revisao', { createAccount });
+      await screen.findByRole('heading', { level: 1, name: 'Revisão' });
+
+      await acceptAndCreate();
+      await screen.findByRole('alert');
+
+      expect(beforeUnloadPrevented()).toBe(true);
+    });
+  });
+
   it.each([
     ['sobre', 'Sobre a ONG'],
     ['contato', 'Contato e acesso'],

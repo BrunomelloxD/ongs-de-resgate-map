@@ -29,6 +29,9 @@ import {
 } from '../repositories/media.repository.interface.js';
 
 const HOUR_MS = 60 * 60 * 1000;
+// Animal variants (PROFILES): 600 px for the cards, 1200 px for the gallery.
+const CARD_SIZE = 600;
+const LARGE_SIZE = 1200;
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 // ngos/{ngoId}/images/{id}-{size}.webp or ngos/{ngoId}/logo/{id}-{size}.webp
 const PUBLIC_KEY = new RegExp(
@@ -222,11 +225,24 @@ export class MediaService {
       throw new NotFoundException();
     }
 
+    const stream =
+      (await this.findStream(key)) ??
+      // Photos saved before the 600 px variant existed (T174): the 1200 px one stands in.
+      (profile === 'animal' && Number(size) === CARD_SIZE
+        ? await this.findStream(variantKey(keyPrefix, LARGE_SIZE))
+        : null);
+    if (!stream) {
+      throw new NotFoundException();
+    }
+    return stream;
+  }
+
+  private async findStream(key: string): Promise<Readable | null> {
     try {
       return await this.storage.getStream(key);
     } catch (error) {
       if (error instanceof ObjectNotFound) {
-        throw new NotFoundException();
+        return null;
       }
       throw error;
     }

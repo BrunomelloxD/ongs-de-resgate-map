@@ -16,6 +16,11 @@ export const ngoPageDictionary = {
     dayHours: (opensAt: string, closesAt: string) =>
       `${opensAt} às ${closesAt}`,
     closed: 'Fechada',
+    // SPEC_DEVIATION: figcraft 04 (O-03) has "Fecha às 18h · 1,2 km de você"; the
+    // distance needs the visitor's position, which this page never gets (SEC-01).
+    closesAt: (time: string) => `Fecha às ${time}`,
+    // SPEC_DEVIATION: the figcraft has no label for ← on the cover; simplest one.
+    back: 'Voltar',
     days: [
       'Domingo',
       'Segunda',
@@ -37,12 +42,23 @@ export const ngoPageDictionary = {
     speciesOptions: { DOG: 'Cão', CAT: 'Gato', OTHER: 'Outro' },
     sexOptions: { MALE: 'Macho', FEMALE: 'Fêmea' },
     sizeOptions: { SMALL: 'Pequeno', MEDIUM: 'Médio', LARGE: 'Grande' },
-    // SPEC_DEVIATION: NGO-08 asks for an invitation without the text; simplest one.
+    // SPEC_DEVIATION: NGO-08 asks for an invitation without the text; figcraft 04 (O-07).
     emptyNgo: {
-      title: 'Nenhum animal cadastrado ainda',
+      title: (name: string) => `A ${name} ainda não cadastrou animais`,
       description:
-        'Fale com a ONG pelo WhatsApp para saber como ajudar ou adotar.',
+        'Fale com a ONG pelo WhatsApp para saber quem está esperando um lar.',
+      ask: 'Perguntar no WhatsApp',
     },
+    // SPEC_DEVIATION: the spec doesn't count the animals; figcraft 04 (O-05).
+    count: (total: number, available: number) =>
+      `${total === 1 ? '1 animal' : `${total} animais`} · ${
+        available === 1
+          ? '1 disponível agora'
+          : `${available} disponíveis agora`
+      }`,
+    allSpecies: 'Todas as espécies',
+    allSexes: 'Todos os sexos',
+    allSizes: 'Todos os portes',
     emptyFiltered: {
       title: 'Nenhum animal com esses filtros.',
       // SPEC_DEVIATION: NGO-09 fixes only the title and the action.

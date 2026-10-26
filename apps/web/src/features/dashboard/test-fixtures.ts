@@ -61,6 +61,7 @@ export function makeMyAnimal(overrides: Partial<MyAnimal> = {}): MyAnimal {
       {
         id: '2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b',
         url: `/img/ngos/${NGO_ID}/images/2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b-1200.webp`,
+        mediumUrl: `/img/ngos/${NGO_ID}/images/2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b-600.webp`,
         thumbUrl: `/img/ngos/${NGO_ID}/images/2e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b-160.webp`,
         width: 1200,
         height: 900,

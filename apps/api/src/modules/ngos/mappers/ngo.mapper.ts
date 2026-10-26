@@ -16,10 +16,11 @@ import type {
 } from '../repositories/ngos.repository.interface.js';
 import { computeOpenStatus, type DayHours } from '../services/open-status.js';
 
-// Image sizes from media's PROFILES: NGO 160/600, animal 160/1200.
+// Image sizes from media's PROFILES: NGO 160/600, animal 160/600/1200.
 const NGO_THUMB = 160;
 const NGO_IMAGE = 600;
 const ANIMAL_THUMB = 160;
+const ANIMAL_CARD = 600;
 const ANIMAL_IMAGE = 1200;
 
 const SPECIES_LABEL: Record<Species, string> = {
@@ -151,6 +152,7 @@ export const NgoMapper = {
       cover: cover
         ? {
             url: imageUrl(cover.keyPrefix, ANIMAL_IMAGE),
+            mediumUrl: imageUrl(cover.keyPrefix, ANIMAL_CARD),
             thumbUrl: imageUrl(cover.keyPrefix, ANIMAL_THUMB),
             width: cover.width,
             height: cover.height,

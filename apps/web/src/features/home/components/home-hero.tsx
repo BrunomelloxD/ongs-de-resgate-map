@@ -1,84 +1,62 @@
 import Link from 'next/link';
-import { Heart, Lock, MapPin, MessageCircle } from 'lucide-react';
-import { ThemeToggle } from '@/components/ui/theme-toggle.client';
+import { Lock, MapPin } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { homeDictionary as t } from '../home.dictionary';
+import { ForNgos } from './for-ngos';
+import { HeroArt } from './hero-art';
+import { HowItWorks } from './how-it-works';
 
 export const LOCATION_PATH = '/localizacao';
-export const LOGIN_PATH = '/entrar';
-
-const STEP_ICONS = [MapPin, Heart, MessageCircle] as const;
 
 /**
- * Welcome page (HOME-01). Plain links only: the browser location is asked
- * for on /localizacao, never here (HOME-02).
+ * Welcome page (HOME-01), figcraft 01: the hero with the photos, "Como
+ * funciona" and the block for NGOs. Plain links only: the browser location is
+ * asked for on /localizacao, never here (HOME-02).
  */
-export function HomeHero() {
+export function HomeHero({
+  notice,
+}: {
+  /** Shown above the title, like the "Conta excluída." of PROF-08. */
+  notice?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-1 flex-col bg-page text-fg">
-      <header className="flex items-center justify-between gap-4 px-gutter py-3">
-        <span className="flex items-center gap-2 font-heading text-lg font-bold">
-          <MapPin aria-hidden="true" className="size-5 text-brand-text" />
-          {t.brand}
-        </span>
-        <nav className="flex items-center gap-2">
-          <Link
-            href={LOGIN_PATH}
-            className="touch-target inline-flex items-center rounded-full border border-line px-4 text-sm font-semibold"
-          >
-            {t.ngoLink}
-          </Link>
-          <ThemeToggle labels={t.theme} />
-        </nav>
-      </header>
-
       <main className="flex flex-1 flex-col">
-        <section className="flex flex-col gap-6 px-gutter py-12 md:py-20">
-          <h1 className="max-w-xl text-5xl font-extrabold tracking-tight md:text-7xl">
-            {t.title}
-          </h1>
-          <p className="max-w-lg text-lg text-fg-secondary">{t.lead}</p>
-          <div>
-            <Link
-              href={LOCATION_PATH}
-              className="touch-target inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 font-semibold text-on-brand"
-            >
-              <MapPin aria-hidden="true" className="size-5" />
-              {t.cta}
-            </Link>
-          </div>
-          <p className="flex items-start gap-2 text-sm text-fg-muted">
-            <Lock aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-            {t.privacy}
-          </p>
-        </section>
-
+        {/* Two columns from 1280px; below that the photos sit above the text. */}
         <section
-          aria-labelledby="how-it-works"
-          className="flex flex-col gap-8 bg-subtle px-gutter py-12 md:flex-row md:py-16"
+          aria-labelledby="home-title"
+          className="xl:h-[700px] xl:px-gutter"
         >
-          <div className="flex flex-col gap-1 md:w-1/4">
-            <h2 id="how-it-works" className="text-3xl font-bold">
-              {t.howItWorks.title}
-            </h2>
-            <p className="text-fg-secondary">{t.howItWorks.subtitle}</p>
+          <div className="relative xl:h-full">
+            <HeroArt />
+            <div className="relative px-gutter pt-2 pb-14 xl:px-0 xl:pt-[150px] xl:pb-0">
+              <div className="flex max-w-[600px] flex-col items-start gap-5 xl:gap-7">
+                {notice}
+                <h1
+                  id="home-title"
+                  className="font-heading text-[2.75rem] leading-[2.875rem] font-extrabold tracking-[-0.03em] xl:text-7xl xl:leading-[4.5rem] min-[90rem]:text-8xl min-[90rem]:leading-[5.75rem] xl:tracking-[-0.035em]"
+                >
+                  {t.title}
+                </h1>
+                <p className="max-w-[520px] text-lg leading-7">{t.lead}</p>
+                <Link
+                  href={LOCATION_PATH}
+                  className={cn(buttonVariants(), 'w-full xl:w-auto')}
+                >
+                  <MapPin aria-hidden="true" className="size-6" />
+                  {t.cta}
+                </Link>
+                <p className="flex items-start gap-2 text-sm text-fg-secondary">
+                  <Lock aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+                  {t.privacy}
+                </p>
+              </div>
+            </div>
           </div>
-          <ol className="grid flex-1 gap-6 md:grid-cols-3">
-            {t.howItWorks.steps.map((step, index) => {
-              const Icon = STEP_ICONS[index]!;
-              return (
-                <li key={step.title} className="flex gap-4 md:flex-col">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-deep text-on-brand-deep">
-                    <Icon aria-hidden="true" className="size-5" />
-                  </span>
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-lg font-bold">{step.title}</h3>
-                    <p className="text-fg-secondary">{step.text}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
         </section>
+        <HowItWorks />
+        <ForNgos />
       </main>
     </div>
   );

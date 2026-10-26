@@ -12,8 +12,9 @@ import type {
   PublicAnimalRecord,
 } from '../repositories/animals.repository.interface.js';
 
-// Variants from media's PROFILES: animal 160/1200, NGO 160/600.
+// Variants from media's PROFILES: animal 160/600/1200, NGO 160/600.
 const THUMB = 160;
+const MEDIUM = 600;
 const LARGE = 1200;
 const NGO_THUMB = 160;
 
@@ -27,6 +28,7 @@ function images(animal: AnimalWithImages): AnimalImageDto[] {
       .map((image: AnimalImage) => ({
         id: image.id,
         url: imageUrl(image.keyPrefix, LARGE),
+        mediumUrl: imageUrl(image.keyPrefix, MEDIUM),
         thumbUrl: imageUrl(image.keyPrefix, THUMB),
         width: image.width,
         height: image.height,

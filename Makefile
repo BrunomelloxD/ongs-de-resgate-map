@@ -7,7 +7,7 @@ API := --workspace=apps/api
 WEB := --workspace=apps/web
 ENV_FILES := .env apps/api/.env apps/web/.env
 
-.PHONY: help install gate dev down logs migrate migration seeder reset e2e storybook env db storage
+.PHONY: help install gate dev dev-railway down logs migrate migration seeder reset e2e storybook env db storage
 
 help: ## Lista os comandos
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) \
@@ -31,6 +31,11 @@ e2e: env ## Sobe a stack em segundo plano e roda os testes E2E (Playwright)
 
 dev: env ## Sobe o projeto localmente (database, migrations, api e web) no Docker
 	$(COMPOSE) up --build
+
+# Photos go to the hosted bucket in apps/api/.env.railway; tests never use this.
+dev-railway: env ## Como o dev, mas a api grava as fotos no bucket do Railway (apps/api/.env.railway)
+	@test -f apps/api/.env.railway || { echo "Crie apps/api/.env.railway a partir de apps/api/.env.railway.example"; exit 1; }
+	$(COMPOSE) -f docker-compose.yml -f docker-compose.railway.yml up --build
 
 down: ## Para e remove os containers (make down v=1 também apaga os dados do banco)
 	$(COMPOSE) down $(if $(v),-v,)

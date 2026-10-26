@@ -26,13 +26,14 @@ describe('AnimalMapper', () => {
       ]);
     });
 
-    it('a foto de posição 0 vem primeiro, com URLs /img de 1200 e 160 px (ANI-02)', () => {
+    it('a foto de posição 0 vem primeiro, com URLs /img de 1200, 600 e 160 px (ANI-02, T174)', () => {
       const dto = AnimalMapper.toPublic(makePublicAnimal({ images: IMAGES }));
 
       expect(dto.images).toEqual([
         {
           id: COVER_ID,
           url: `/img/ngos/${NGO_ID}/images/${COVER_ID}-1200.webp`,
+          mediumUrl: `/img/ngos/${NGO_ID}/images/${COVER_ID}-600.webp`,
           thumbUrl: `/img/ngos/${NGO_ID}/images/${COVER_ID}-160.webp`,
           width: 1200,
           height: 900,
@@ -41,6 +42,7 @@ describe('AnimalMapper', () => {
         {
           id: SECOND_ID,
           url: `/img/ngos/${NGO_ID}/images/${SECOND_ID}-1200.webp`,
+          mediumUrl: `/img/ngos/${NGO_ID}/images/${SECOND_ID}-600.webp`,
           thumbUrl: `/img/ngos/${NGO_ID}/images/${SECOND_ID}-160.webp`,
           width: 800,
           height: 600,

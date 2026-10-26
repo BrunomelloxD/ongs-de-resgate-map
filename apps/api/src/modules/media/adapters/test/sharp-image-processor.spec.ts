@@ -30,8 +30,8 @@ async function describeVariants(variants: ImageVariant[]) {
 describe('SharpImageProcessor', () => {
   const processor = new SharpImageProcessor();
 
-  describe('foto de animal (160 e 1200 px)', () => {
-    it('JPG com GPS gera 2 variantes WebP sem bloco EXIF/GPS (SEC-07, AFORM-12)', async () => {
+  describe('foto de animal (160, 600 e 1200 px)', () => {
+    it('JPG com GPS gera 3 variantes WebP (160, 600 e 1200) sem bloco EXIF/GPS (SEC-07, AFORM-12, T174)', async () => {
       const input = await fixture('photo-gps.jpg');
       // The fixture really carries EXIF with GPS; otherwise the test proves nothing.
       expect((await sharp(input).metadata()).exif).toBeDefined();
@@ -51,6 +51,15 @@ describe('SharpImageProcessor', () => {
           exif: undefined,
         },
         {
+          size: 600,
+          width: 600,
+          height: 800,
+          format: 'webp',
+          realWidth: 600,
+          realHeight: 800,
+          exif: undefined,
+        },
+        {
           size: 1200,
           width: 1200,
           height: 1600,
@@ -65,7 +74,7 @@ describe('SharpImageProcessor', () => {
       }
     });
 
-    it('HEIC gera as 2 variantes WebP (AFORM-08)', async () => {
+    it('HEIC gera as 3 variantes WebP (AFORM-08, T174)', async () => {
       const variants = await processor.process(
         await fixture('photo.heic'),
         'animal',
@@ -79,6 +88,15 @@ describe('SharpImageProcessor', () => {
           format: 'webp',
           realWidth: 160,
           realHeight: 120,
+          exif: undefined,
+        },
+        {
+          size: 600,
+          width: 600,
+          height: 450,
+          format: 'webp',
+          realWidth: 600,
+          realHeight: 450,
           exif: undefined,
         },
         {
@@ -102,11 +120,13 @@ describe('SharpImageProcessor', () => {
 
       expect(heic.map((v) => [v.width, v.height])).toEqual([
         [160, 120],
+        [600, 450],
         [1200, 900],
       ]);
       // 800×600: the large variant keeps the original width.
       expect(png.map((v) => [v.size, v.width, v.height])).toEqual([
         [160, 160, 120],
+        [600, 600, 450],
         [1200, 800, 600],
       ]);
     });
@@ -119,6 +139,7 @@ describe('SharpImageProcessor', () => {
 
       expect(variants.map((v) => [v.size, v.width, v.height])).toEqual([
         [160, 160, 231],
+        [600, 600, 867],
         [1200, 900, 1300],
       ]);
     });
@@ -233,8 +254,10 @@ describe('SharpImageProcessor', () => {
 
       expect(maxActive).toBe(1);
       expect(gif.status).toBe('rejected');
-      expect(png.status === 'fulfilled' && png.value[1].width).toBe(800);
-      expect(heic.status === 'fulfilled' && heic.value[1].width).toBe(1200);
+      expect(png.status === 'fulfilled' && png.value.at(-1)!.width).toBe(800);
+      expect(heic.status === 'fulfilled' && heic.value.at(-1)!.width).toBe(
+        1200,
+      );
     });
   });
 });

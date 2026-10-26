@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, fn, userEvent, waitFor } from 'storybook/test';
-import { makeCity } from '../test-fixtures';
+import type { LookupCepResult } from '../location.types';
+import { makeCepAddress, makeCity } from '../test-fixtures';
 import { CityAutocomplete } from './city-autocomplete.client';
 
 const CITIES = [
@@ -71,6 +72,48 @@ export const SearchError: Story = {
     await expect(
       await canvas.findByText(
         'Não conseguimos buscar as cidades agora. Tente pelo CEP.',
+      ),
+    ).toBeVisible();
+  },
+};
+
+/** T186: "Cidade ou CEP", with the CEP looked up into a suggestion (LOC-09). */
+export const WithCep: Story = {
+  args: {
+    lookupCep: fn<(cep: string) => Promise<LookupCepResult>>(async () => ({
+      ok: true,
+      address: makeCepAddress({ district: 'Vila Mariana' }),
+    })),
+    onCep: fn(),
+    submitLabel: 'Ver ONGs nesta região',
+  },
+  play: async ({ canvas, args }) => {
+    const input = canvas.getByRole('combobox', { name: 'Cidade ou CEP' });
+    await userEvent.type(input, '04101000');
+    await userEvent.click(
+      await canvas.findByRole('option', {
+        name: '04101-000 Vila Mariana, São Paulo – SP',
+      }),
+    );
+    await expect(args.onCep).toHaveBeenCalled();
+  },
+};
+
+/** The map's error state (03-mapa-erro): outline "Buscar nesta cidade". */
+export const WithCepNotFound: Story = {
+  args: {
+    lookupCep: fn<(cep: string) => Promise<LookupCepResult>>(async () => ({
+      ok: false,
+      error: 'CEP não encontrado. Confira os números ou busque pela cidade.',
+    })),
+    submitLabel: 'Buscar nesta cidade',
+    submitVariant: 'outline',
+  },
+  play: async ({ canvas }) => {
+    await userEvent.type(canvas.getByRole('combobox'), '00000000');
+    await expect(
+      await canvas.findByText(
+        'CEP não encontrado. Confira os números ou busque pela cidade.',
       ),
     ).toBeVisible();
   },

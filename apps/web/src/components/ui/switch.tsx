@@ -6,7 +6,7 @@ export type SwitchProps = Omit<SwitchPrimitive.Root.Props, 'aria-label'> & {
   'aria-label': string;
 };
 
-/** `role="switch"` with `aria-checked`. The 44px hit area is the root; the track is drawn inside. */
+/** Design System "Toggle": grey track off, green on. `role="switch"` with `aria-checked`. The 44px hit area is the root; the track is drawn inside. */
 export function Switch({ className, ...props }: SwitchProps) {
   return (
     <SwitchPrimitive.Root
@@ -19,9 +19,9 @@ export function Switch({ className, ...props }: SwitchProps) {
     >
       <span
         aria-hidden="true"
-        className="inline-flex h-7 w-12 items-center rounded-full border border-border bg-surface-2 p-0.5 transition-colors group-data-[checked]/switch:border-available group-data-[checked]/switch:bg-available"
+        className="inline-flex h-7 w-12 items-center rounded-full bg-switch-off p-[3px] transition-colors group-data-[checked]/switch:bg-available"
       >
-        <SwitchPrimitive.Thumb className="block size-5 rounded-full bg-surface shadow-sm ring-1 ring-border transition-transform group-data-[checked]/switch:translate-x-5" />
+        <SwitchPrimitive.Thumb className="block size-5.5 rounded-full bg-white shadow-sm transition-transform group-data-[checked]/switch:translate-x-5" />
       </span>
     </SwitchPrimitive.Root>
   );

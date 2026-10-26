@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, CircleCheck, MapPin } from 'lucide-react';
+import { ArrowLeft, CircleCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useActionState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,9 @@ import {
   type ErrorSummaryItem,
 } from '@/components/ui/error-summary';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input.client';
 import { Label } from '@/components/ui/label';
+import { Logo } from '@/components/ui/logo';
 import { authDictionary as t } from '../auth.dictionary';
 import type { LoginState } from '../auth.types';
 
@@ -63,19 +65,17 @@ export function LoginForm({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* On desktop the AuthShell panel carries the logo; there is no back arrow. */}
       <Link
         href="/"
         aria-label={t.back}
-        className="touch-target inline-flex w-fit items-center justify-center rounded-full"
+        className="touch-target inline-flex w-fit items-center justify-center rounded-full lg:hidden"
       >
         <ArrowLeft aria-hidden="true" className="size-6" />
       </Link>
-      <span className="flex items-center gap-2 font-heading text-lg font-bold">
-        <MapPin aria-hidden="true" className="size-6 text-brand-text" />
-        {t.brand}
-      </span>
+      <Logo className="lg:hidden" />
       <div className="flex flex-col gap-3">
-        <h1 className="text-4xl font-extrabold tracking-tight">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
           {t.login.title}
         </h1>
         <p className="text-lg text-fg-secondary">{t.login.lead}</p>
@@ -124,10 +124,9 @@ export function LoginForm({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={PASSWORD_ID}>{t.fields.password}</Label>
-          <Input
+          <PasswordInput
             id={PASSWORD_ID}
             name="password"
-            type="password"
             autoComplete="current-password"
             required
             aria-invalid={passwordError ? true : undefined}
@@ -149,12 +148,7 @@ export function LoginForm({
           {t.login.forgot}
         </Link>
 
-        <Button
-          type="submit"
-          size="lg"
-          disabled={pending}
-          className="rounded-full text-base font-semibold"
-        >
+        <Button type="submit" size="lg" disabled={pending}>
           {pending ? t.login.pending : t.login.submit}
         </Button>
       </form>

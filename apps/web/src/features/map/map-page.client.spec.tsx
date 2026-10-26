@@ -2,6 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import type { NgoMapProps } from './components/ngo-map.client';
 import { MapPage } from './map-page.client';
+import { FakePlaceSearch } from './test-place-search';
 
 const recorded = vi.hoisted(() => ({
   props: undefined as unknown as NgoMapProps,
@@ -17,6 +18,7 @@ vi.mock('./components/ngo-map.client', () => ({
 const TILES = {
   tileUrl: 'http://tiles.test/{z}/{x}/{y}.png',
   attribution: '© OpenStreetMap contributors',
+  PlaceSearch: FakePlaceSearch,
 };
 
 beforeEach(() => {
@@ -32,6 +34,20 @@ describe('MapPage', () => {
     ).toBeInTheDocument();
     expect(recorded.props).toMatchObject(TILES);
     expect(recorded.props.geolocation).toBe(navigator.geolocation);
+  });
+
+  it('T176: mostra a moldura "Procurando ONGs perto de você…" antes do Leaflet chegar', async () => {
+    // next/dynamic keeps the loaded chunk per module: start from a fresh one.
+    vi.resetModules();
+    const { MapPage: FreshMapPage } = await import('./map-page.client');
+    render(<FreshMapPage {...TILES} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Procurando ONGs perto de você…',
+    );
+    expect(screen.queryByText(/ngo-map/)).not.toBeInTheDocument();
+    expect(await screen.findByText(/ngo-map/)).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('MAP-14: um raio novo vai para o fragmento, sem sair da página', async () => {

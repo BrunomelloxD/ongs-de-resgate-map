@@ -178,6 +178,7 @@ Antes de escrever algo novo, procure se já existe. Quando algo for compartilhad
 | `make e2e`                   | sobe a stack em segundo plano (`docker compose up -d --wait`) e roda o Playwright. É o que o job "E2E" do CI roda. A stack continua no ar depois (`make down` para parar)                                        |
 | **Ambiente local**           |                                                                                                                                                                                                                  |
 | `make dev`                   | `docker compose up --build`: database → migrations → api → web, com logs no terminal. O Ctrl+C só **para** os containers                                                                                         |
+| `make dev-railway`           | como o `make dev`, mas a api grava as fotos no bucket de `apps/api/.env.railway` ([seção 8](#8-ambiente-local)). Os testes nunca usam esse modo                                                                  |
 | `make down`                  | para e remove os containers. `make down v=1` apaga também o volume do banco                                                                                                                                      |
 | `make logs`                  | acompanha os logs da stack. `make logs s=api` mostra um serviço só                                                                                                                                               |
 | `make storybook`             | Storybook do web em `http://localhost:6006`                                                                                                                                                                      |
@@ -237,13 +238,21 @@ A ordem de subida é: `database` (saudável) → `migrate` (concluído); `minio`
 
 **Variáveis:**
 
-| Arquivo         | Conteúdo                                                                   |
-| --------------- | -------------------------------------------------------------------------- |
-| `.env` (raiz)   | `POSTGRES_*`, `MINIO_*`, `MAILPIT_*`, portas (`WEB_PORT`, `API_PORT`, ...) |
-| `apps/api/.env` | variáveis da api; `DATABASE_URL` sempre em `localhost`                     |
-| `apps/web/.env` | `API_URL` sempre em `localhost`                                            |
+| Arquivo         | Conteúdo                                                                                                                                                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.env` (raiz)   | `POSTGRES_*`, `MINIO_*`, `MAILPIT_*`, portas (`WEB_PORT`, `API_PORT`, ...)                                                                                                                                                          |
+| `apps/api/.env` | variáveis da api ([apps/api/ARCHITECTURE.md §7](apps/api/ARCHITECTURE.md#7-configuração-e-ambiente)): banco, `S3_*`, `SMTP_URL`, `INTERNAL_API_TOKEN`, `IP_HASH_SECRET`, Nominatim e `DEMO_*`; `DATABASE_URL` sempre em `localhost` |
+| `apps/web/.env` | `API_URL` (sempre em `localhost`), `INTERNAL_API_TOKEN`, `PUBLIC_WEB_URL`, `TILE_URL`, `TILE_ATTRIBUTION` e `MAX_UPLOAD_MB` ([apps/web/ARCHITECTURE.md §7.5](apps/web/ARCHITECTURE.md#75-variáveis-de-ambiente))                    |
+
+O `INTERNAL_API_TOKEN` tem o mesmo valor nos dois apps. Os `.env.example` trazem só valores falsos de desenvolvimento; os valores reais nunca entram no repositório nem na documentação (SEC-08).
 
 No Compose, as URLs entre containers (`DATABASE_URL` → `database`, `API_URL` → `api`) são montadas automaticamente. Por isso os `.env` dos apps servem tanto para rodar no Docker quanto fora dele.
+
+**Fotos no bucket do Railway (`make dev-railway`):** sobe a mesma stack, mas a api grava e lê as fotos de um bucket hospedado em vez do MinIO. O `docker-compose.railway.yml` troca só as `S3_*` da api, que vêm de `apps/api/.env.railway` (fora do git; modelo em `apps/api/.env.railway.example`). O banco, o Mailpit e as seeds continuam locais. Regras:
+
+- Use um bucket **só de desenvolvimento**, nunca o de produção: o banco local não conhece os objetos do bucket de produção, e as fotos enviadas no dev ficariam órfãs lá.
+- O `make dev`, o `make e2e` e o `make gate` nunca carregam esse arquivo, então os testes rodam sempre no MinIO. Rodar um deles depois do `make dev-railway` recria a api apontando de novo para o MinIO.
+- As fotos enviadas no modo Railway só existem lá: de volta ao `make dev`, elas respondem 404 no `/img`, porque o MinIO não as tem.
 
 ---
 
@@ -262,6 +271,9 @@ docker build -f apps/web/Dockerfile --target production -t web .
 | web    | `.next/standalone` + estáticos                          | `node`  |
 
 As migrations de produção rodam no pipeline, antes do deploy da api: a imagem de produção não tem a CLI do Prisma.
+
+- **As duas imagens são construídas sem `.env`.** O export do OpenAPI preenche valores de marcação só durante o export (T167). No web, o `npm run check` (e, portanto, o `make gate`) roda o `build:no-env`: `env -i … __NEXT_PROCESSED_ENV=true next build`. A `__NEXT_PROCESSED_ENV` é uma variável interna do Next que impede o `next build` de ler os `.env` do disco. **Ao atualizar o Next, confira que ela continua com o mesmo efeito** (apague o `apps/web/.env` de uma cópia e rode o `build:no-env`), porque uma mudança interna faria a checagem passar sem provar nada.
+- **sharp na imagem da api:** o estágio `prod-deps` usa `--omit=optional`, que também tira os binários nativos do sharp. O Dockerfile instala de volta só os da plataforma da imagem, `@img/sharp-linuxmusl-<arch>` e `@img/sharp-libvips-linuxmusl-<arch>`. Se a imagem base deixar de ser Alpine (musl), esses pacotes precisam mudar.
 
 ---
 
@@ -283,7 +295,7 @@ As migrations de produção rodam no pipeline, antes do deploy da api: a imagem 
 
 Os artefatos publicados são a cobertura, o Storybook estático e o relatório do Playwright.
 
-Deploy não está configurado: depende de onde cada app vai rodar.
+Deploy não está configurado. O plano para a demo (Railway) está na [seção 12](#12-operação-da-demo).
 
 ---
 
@@ -292,3 +304,51 @@ Deploy não está configurado: depende de onde cada app vai rodar.
 - O `npm audit` acusa vulnerabilidades em dependências **das CLIs** do Prisma (`mysql2`, `deepmerge-ts`) e do shadcn (`braces`, `fast-glob`).
 - Nenhuma delas vai para as imagens de produção: a CLI do Prisma é removida da imagem da api, e o shadcn é só devDependency.
 - As correções sugeridas pelo `npm audit fix --force` são **downgrades de versão major** e não devem ser aplicadas. Acompanhe as versões novas do Prisma e do shadcn.
+
+---
+
+## 12. Operação da demo
+
+O MVP roda como demonstração pública (`DEMO_MODE=true`): os dados de cada ONG são apagados depois de `DEMO_RETENTION_DAYS` dias, e as cotas `DEMO_*` limitam ONGs, animais, fotos e armazenamento. Nada disto está configurado no Railway ainda.
+
+### 12.1 Serviços
+
+| Serviço           | Onde roda                         | Observações                                                                                                              |
+| ----------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| web               | serviço público                   | único ponto exposto à internet. Fala com a api pela rede privada                                                         |
+| api               | **só na rede privada**            | toda rota (menos `/health`) exige o header `X-Internal-Token` igual ao `INTERNAL_API_TOKEN` (AD-002)                     |
+| limpeza (cron)    | serviço cron, **uma vez por dia** | mesma imagem da api, comando `node dist/app/cleanup.cli.js` (AD-006). Sem agendador dentro da api                        |
+| Postgres e bucket | serviços gerenciados              | o bucket é S3 compatível e só a api tem as credenciais (AD-001). As migrations rodam no pipeline, antes do deploy da api |
+
+No ambiente local, o Compose troca o bucket pelo MinIO e o SMTP pelo Mailpit ([seção 8](#8-ambiente-local)).
+
+### 12.2 Limpeza (`npm run cleanup`)
+
+Cada execução apaga tudo o que já venceu, então uma execução que falhou é recuperada na seguinte (AD-006):
+
+- ONGs vencidas, com horários, animais, sessões e os objetos do prefixo `ngos/{id}/` no bucket (DEMO-04, DEMO-05);
+- fotos enviadas e nunca confirmadas há mais de 24 h (DEMO-15);
+- linhas de limite de taxa com mais de 1 h, sessões vencidas e links de recuperação de senha vencidos.
+
+O comando sai com código 0 quando tudo deu certo e 1 quando algo falhou, para o cron do Railway registrar a falha.
+
+No dev, a limpeza roda à mão: `npm run build --workspace=apps/api` e depois `npm run cleanup --workspace=apps/api`. Ela lê o `apps/api/.env`: antes de rodar, confira que `DATABASE_URL` e `S3_*` apontam para o banco local e para o MinIO, e não para um bucket real. Não existe alvo `make cleanup`.
+
+### 12.3 Segurança da operação
+
+- **Rede privada + `INTERNAL_API_TOKEN` (AD-002).** O web manda o token em toda chamada e repassa o IP do visitante em `X-Client-IP`. O IP serve só ao limite de taxa: nunca vai para log nem para o banco em claro (SEC-01; a cota de cadastros por IP usa um hash com `IP_HASH_SECRET`). A api não pode ser exposta a terceiros sem rever esta regra.
+- **Logs sem query string nem dados sensíveis (SEC-02, SEC-08).** A api registra método, URL sem query, status e tempo. No web, o servidor de dev ignora `/map/ngos` no log de requisições (`logging.incomingRequests` do `next.config.ts`); o build de produção não registra requisições. O E2E `apps/web/e2e/privacy.spec.ts` confere nos `docker compose logs` que nem a `bbox` nem o IP do visitante aparecem.
+- **Rotação de chaves pendente (PRD §14).** As chaves do bucket do Railway que estão no `apps/api/.env` local foram expostas e precisam ser rotacionadas antes da demo pública. Depois da rotação, gere também valores novos para `INTERNAL_API_TOKEN` e `IP_HASH_SECRET` (`openssl rand -base64 48`) e grave-os só nas variáveis do Railway. Nenhuma rotação foi feita até aqui.
+
+### 12.4 Decisões do MVP
+
+Registradas em `.specs/STATE.md` (fora do repositório) e resumidas aqui:
+
+| Id     | Decisão                                                                                                                                                                                                                               |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AD-001 | As fotos vão do navegador para uma Server Action do web, que repassa à api. A api converte com sharp, grava só variantes WebP (sem original e sem EXIF) e o web as serve em `/img/[...key]`, com cache imutável. Sem URL pré-assinada |
+| AD-002 | A api roda só na rede privada, exige `X-Internal-Token` em toda rota (menos `/health`) e usa o `X-Client-IP` enviado pelo web em todos os limites de taxa                                                                             |
+| AD-003 | Sessão da ONG com token opaco de 32 bytes, guardado na api só como SHA-256, no cookie `ah_session` (`HttpOnly`, `Secure`, `SameSite=Lax`) e enviado à api como `Bearer`. Expira com 7 dias sem uso; o cookie dura 1 dia (AUTH-02)     |
+| AD-004 | Toda cota da demo é checada na transação que cria o registro, depois de um `pg_advisory_xact_lock` do escopo da cota                                                                                                                  |
+| AD-005 | Localização da ONG em duas colunas `double precision` (`lat`, `lng`) com índice B-tree; busca por bbox em SQL comum, sem PostGIS                                                                                                      |
+| AD-006 | A limpeza da demo é um serviço cron do Railway que roda `node dist/app/cleanup.cli.js` uma vez por dia; a api não tem agendador interno                                                                                               |

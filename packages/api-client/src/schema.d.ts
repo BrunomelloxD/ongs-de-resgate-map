@@ -624,6 +624,11 @@ export interface components {
         AnimalCoverDto: {
             /** @example /img/ngos/{ngoId}/images/{id}-1200.webp */
             url: string;
+            /**
+             * @description PERF-02: the 600 px variant, for the cards
+             * @example /img/ngos/{ngoId}/images/{id}-600.webp
+             */
+            mediumUrl: string;
             /** @example /img/ngos/{ngoId}/images/{id}-160.webp */
             thumbUrl: string;
             /** @example 1200 */
@@ -825,6 +830,11 @@ export interface components {
             id: string;
             /** @example /img/ngos/{ngoId}/images/{id}-1200.webp */
             url: string;
+            /**
+             * @description PERF-02: the 600 px variant, for the cards
+             * @example /img/ngos/{ngoId}/images/{id}-600.webp
+             */
+            mediumUrl: string;
             /** @example /img/ngos/{ngoId}/images/{id}-160.webp */
             thumbUrl: string;
             /** @example 1200 */

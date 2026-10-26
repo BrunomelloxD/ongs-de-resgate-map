@@ -3,7 +3,7 @@
 Mapa de ONGs que resgatam e cuidam de animais: o visitante encontra ONGs perto de casa, conhece os animais e fala com a ONG pelo WhatsApp; a ONG mantém o perfil e os animais disponíveis.
 
 > ⚠️ **Em desenvolvimento, ainda não está pronto para uso.**
-> O MVP está sendo implementado: a api está completa; no web faltam o formulário de animal, o perfil da ONG, o compartilhamento e a validação final. Pode haver telas incompletas e mudanças que quebram compatibilidade. Não use em produção.
+> As telas do MVP estão implementadas na api e no web. Falta: a validação final contra o spec, as metas de performance em celular (LCP da página da ONG e tempo até o mapa ficar interativo), o alvo de toque dos pinos do mapa, a rotação das chaves expostas do bucket e o deploy da demo no Railway. Pode haver mudanças que quebram compatibilidade. Não use em produção.
 >
 > Produto em [prd.md](prd.md).
 
@@ -43,6 +43,7 @@ O `make install` cria os `.env` que faltam a partir dos `.env.example` (nunca so
 | `make`                       | lista os comandos                                                                |
 | `make install`               | instala as dependências (api, web e pacotes) e prepara o ambiente                |
 | `make dev`                   | sobe o projeto localmente no Docker                                              |
+| `make dev-railway`           | como o `make dev`, com as fotos no bucket do Railway (`apps/api/.env.railway`)   |
 | `make down`                  | para e remove os containers (`v=1` apaga também o banco)                         |
 | `make logs`                  | logs da stack (`s=api` para um serviço)                                          |
 | `make migrate`               | aplica as migrations pendentes                                                   |
@@ -54,3 +55,9 @@ O `make install` cria os `.env` que faltam a partir dos `.env.example` (nunca so
 | `make storybook`             | Storybook do web                                                                 |
 
 Lista completa em [ARCHITECTURE.md](ARCHITECTURE.md#7-comandos-na-raiz).
+
+## Demonstração
+
+O MVP roda em modo demonstração: os dados de cada ONG são apagados depois de alguns dias (`DEMO_RETENTION_DAYS`), e há cotas de ONGs, animais e fotos. A limpeza roda uma vez por dia como serviço cron (`node dist/app/cleanup.cli.js`); no dev, rode à mão com `npm run build --workspace=apps/api && npm run cleanup --workspace=apps/api`, com o `apps/api/.env` apontando para o banco local e o MinIO.
+
+A api fica só na rede privada e aceita apenas chamadas do web, com o `INTERNAL_API_TOKEN`. Variáveis, serviços, limpeza e segurança da operação: [ARCHITECTURE.md §12](ARCHITECTURE.md#12-operação-da-demo).

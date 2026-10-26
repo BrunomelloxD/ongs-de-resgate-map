@@ -6,7 +6,16 @@ export const dashboardDictionary = {
   header: {
     // SPEC_DEVIATION: the spec doesn't name the area; text from the design.
     area: 'Área da ONG',
+    // The spec doesn't name the link to /painel/perfil; the text comes from T170.
+    profile: 'Perfil da ONG',
     logout: 'Sair',
+    // SPEC_DEVIATION: the NGO area menu (T184) follows the figcraft (09-*); the
+    // spec doesn't name its items, the menu button nor the navigation.
+    animals: 'Animais',
+    publicPage: 'Ver página pública',
+    nav: 'Área da ONG',
+    openMenu: 'Abrir menu',
+    closeMenu: 'Fechar menu',
   },
   list: {
     title: 'Seus animais',

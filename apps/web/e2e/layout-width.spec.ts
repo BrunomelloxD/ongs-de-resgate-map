@@ -1,29 +1,12 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { mapDictionary as m } from '../src/features/map/map.dictionary';
 import { MapPage } from './pages/map.page';
+import { hasHorizontalScroll, usableWidth } from './support/layout';
 
 // T166/PERF-05: narrow columns keep room for content on desktop and never
 // scroll sideways on a phone.
 const MIN_USABLE_PX = 320;
 const SAO_PAULO = { lat: -23.5329, lng: -46.6395 };
-
-/** Width left for content: the box minus its horizontal padding. */
-function usableWidth(locator: Locator) {
-  return locator.evaluate((el) => {
-    const style = getComputedStyle(el);
-    return (
-      el.clientWidth -
-      parseFloat(style.paddingLeft) -
-      parseFloat(style.paddingRight)
-    );
-  });
-}
-
-function hasHorizontalScroll(page: Page) {
-  return page.evaluate(
-    () => document.documentElement.scrollWidth > window.innerWidth,
-  );
-}
 
 const SCREENS: {
   name: string;

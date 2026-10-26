@@ -16,7 +16,10 @@ export const instant = false;
 
 /** DASH-06, AFORM-01, DEMO-06. */
 export default async function NewAnimalRoute() {
-  const [ngo, demo] = await Promise.all([getMyNgo(), getDemoInfo()]);
+  // The session read comes first: it stops the build prerender, so the cached
+  // getDemoInfo() (which needs the env) only runs at request time.
+  const ngo = await getMyNgo();
+  const demo = await getDemoInfo();
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-6 text-fg">

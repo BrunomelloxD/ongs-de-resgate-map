@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
+import { GuardedLink } from '@/components/ui/unsaved-changes.client';
 import { useEffect, useRef, useState } from 'react';
+import { ActionBar } from '@/components/ui/action-bar';
 import { Button } from '@/components/ui/button';
 import {
   ErrorSummary,
@@ -10,6 +11,7 @@ import {
   type ErrorSummaryItem,
 } from '@/components/ui/error-summary';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input.client';
 import { Label } from '@/components/ui/label';
 import { PasswordRules } from '@/components/ui/password-rules';
 import { maskWhatsapp } from '@/lib/masks';
@@ -207,15 +209,15 @@ export function StepContact({
           )}
           {taken && (
             <div className="flex flex-wrap gap-x-6">
-              <Link
+              <GuardedLink
                 href={`${LOGIN_PATH}?email=${encodeURIComponent(values.email.trim())}`}
                 className={linkClass}
               >
                 {t.contact.loginWithEmail}
-              </Link>
-              <Link href={RECOVER_PASSWORD_PATH} className={linkClass}>
+              </GuardedLink>
+              <GuardedLink href={RECOVER_PASSWORD_PATH} className={linkClass}>
                 {t.contact.recoverPassword}
-              </Link>
+              </GuardedLink>
             </div>
           )}
         </div>
@@ -241,10 +243,9 @@ export function StepContact({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={IDS.password}>{t.contact.password}</Label>
-          <Input
+          <PasswordInput
             id={IDS.password}
             name="password"
-            type="password"
             autoComplete="new-password"
             value={values.password}
             onChange={(e) => change('password', e.target.value)}
@@ -263,10 +264,9 @@ export function StepContact({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={IDS.confirmation}>{t.contact.confirmation}</Label>
-          <Input
+          <PasswordInput
             id={IDS.confirmation}
             name="confirmation"
-            type="password"
             autoComplete="new-password"
             value={values.confirmation}
             onChange={(e) => change('confirmation', e.target.value)}
@@ -276,25 +276,14 @@ export function StepContact({
           {fieldError('confirmation')}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            onClick={onBack}
-            className="rounded-full text-base font-semibold"
-          >
+        <ActionBar>
+          <Button type="button" variant="outline" size="lg" onClick={onBack}>
             {t.contact.back}
           </Button>
-          <Button
-            type="submit"
-            size="lg"
-            disabled={checking}
-            className="rounded-full text-base font-semibold"
-          >
+          <Button type="submit" size="lg" disabled={checking}>
             {checking ? t.contact.checking : t.contact.submit}
           </Button>
-        </div>
+        </ActionBar>
       </form>
     </div>
   );

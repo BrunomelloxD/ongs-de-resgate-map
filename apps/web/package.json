@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:no-env": "env -i PATH=\"$PATH\" HOME=\"$HOME\" NEXT_TELEMETRY_DISABLED=1 __NEXT_PROCESSED_ENV=true next build",
     "start": "next start",
     "lint": "oxlint --type-aware src/ test/ e2e/ .storybook/ && node scripts/check-conventions.mjs",
     "typecheck": "next typegen && tsc --noEmit",

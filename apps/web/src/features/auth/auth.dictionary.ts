@@ -3,6 +3,9 @@
 // AUTH-11, AUTH-12, AUTH-13 and SIGN-16.
 export const authDictionary = {
   brand: 'Animal Helper',
+  // Phrase of the green panel of the login and recovery screens (desktop).
+  panelPhrase:
+    'Cada animal que você cadastra aparece no mapa para quem quer adotar perto de casa.',
   // SPEC_DEVIATION: the spec doesn't define the field validation texts nor the
   // generic error for an unexpected api answer; simplest texts.
   fields: {

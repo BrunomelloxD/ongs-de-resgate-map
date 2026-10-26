@@ -205,3 +205,18 @@ test('A11Y-09: com movimento reduzido, o bottom sheet não anima', async ({
     '0s',
   );
 });
+
+test('PERF-04/T176: o /mapa pré-conecta à origem dos tiles (TILE_URL)', async ({
+  page,
+}) => {
+  const map = new MapPage(page);
+
+  await map.goto(SAO_PAULO);
+
+  // TILE_URL of the dev stack; MapPage.stubTiles answers the same origin.
+  await expect(
+    page.locator(
+      'link[rel="preconnect"][href="https://tile.openstreetmap.org"]',
+    ),
+  ).toHaveCount(1);
+});

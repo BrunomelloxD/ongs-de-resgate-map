@@ -14,9 +14,13 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvas, args, userEvent }) => {
-    const toggle = canvas.getByRole('switch', { name: 'Só disponíveis' });
-    await expect(toggle).toBeChecked();
-    await userEvent.click(canvas.getByRole('button', { name: 'Cão' }));
+    // T189 (O-06): a toggle chip and dropdown chips.
+    const toggle = canvas.getByRole('button', { name: 'Só disponíveis' });
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.selectOptions(
+      canvas.getByRole('combobox', { name: 'Espécie' }),
+      'DOG',
+    );
     await expect(args.onChange).toHaveBeenLastCalledWith({
       species: 'DOG',
       available: true,
@@ -34,4 +38,8 @@ export const Combined: Story = {
     );
     await expect(args.onChange).toHaveBeenLastCalledWith({ available: true });
   },
+};
+
+export const Mobile: Story = {
+  globals: { viewport: { value: 'mobile' } },
 };

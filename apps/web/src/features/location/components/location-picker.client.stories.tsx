@@ -102,10 +102,12 @@ export const CepFound: Story = {
   args: { initialPhase: 'manual' },
   play: async ({ canvas, args }) => {
     await userEvent.type(
-      canvas.getByRole('textbox', { name: 'CEP' }),
+      canvas.getByRole('combobox', { name: 'Cidade ou CEP' }),
       '01310100',
     );
-    await userEvent.click(canvas.getByRole('button', { name: 'Buscar CEP' }));
+    await userEvent.click(
+      await canvas.findByRole('button', { name: 'Ver ONGs nesta região' }),
+    );
     await waitFor(() =>
       expect(args.navigate).toHaveBeenCalledWith(
         '/mapa#c=-23.5613,-46.6565&r=5',
@@ -124,10 +126,9 @@ export const CepNotFound: Story = {
   },
   play: async ({ canvas }) => {
     await userEvent.type(
-      canvas.getByRole('textbox', { name: 'CEP' }),
+      canvas.getByRole('combobox', { name: 'Cidade ou CEP' }),
       '00000000',
     );
-    await userEvent.click(canvas.getByRole('button', { name: 'Buscar CEP' }));
     await expect(await canvas.findByText(NOT_FOUND)).toBeVisible();
   },
 };
@@ -135,4 +136,35 @@ export const CepNotFound: Story = {
 export const Mobile: Story = {
   args: { initialPhase: 'denied' },
   globals: { viewport: { value: 'mobile' } },
+};
+
+/** Figcraft 02-permissao-de-localizacao-mobile: the round map above the title. */
+export const IdleMobile: Story = {
+  globals: { viewport: { value: 'mobile' } },
+  play: async ({ canvasElement }) => {
+    const art = canvasElement.querySelector('img')!;
+    await expect(getComputedStyle(art).display).not.toBe('none');
+  },
+};
+
+/** Figcraft 02-permissao-negada: the CEP suggestion open under the field. */
+export const DeniedWithCepSuggestion: Story = {
+  args: { initialPhase: 'denied' },
+  globals: { viewport: { value: 'mobile' } },
+  play: async ({ canvas }) => {
+    await userEvent.type(
+      canvas.getByRole('combobox', { name: 'Cidade ou CEP' }),
+      '04101000',
+    );
+    await expect(
+      await canvas.findByRole('option', {
+        name: '04101-000 Bela Vista, São Paulo – SP',
+      }),
+    ).toBeVisible();
+  },
+};
+
+export const DeniedDesktop: Story = {
+  args: { initialPhase: 'denied' },
+  globals: { viewport: { value: 'desktop' } },
 };

@@ -53,8 +53,9 @@ export class LocationPage {
     return this.page.getByRole('alert').filter({ hasText: /\S/ });
   }
 
+  /** T186: one "Cidade ou CEP" field for both. */
   get cityField() {
-    return this.page.getByRole('combobox', { name: t.city.label });
+    return this.page.getByRole('combobox', { name: t.city.labelWithCep });
   }
 
   cityOption(name: string) {
@@ -62,11 +63,11 @@ export class LocationPage {
   }
 
   get cepField() {
-    return this.page.getByRole('textbox', { name: t.cep.label });
+    return this.cityField;
   }
 
   async searchCep(cep: string) {
     await this.cepField.fill(cep);
-    await this.page.getByRole('button', { name: t.cep.submit }).click();
+    await this.page.getByRole('button', { name: t.manual.submit }).click();
   }
 }

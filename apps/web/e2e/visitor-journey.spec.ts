@@ -60,7 +60,7 @@ test('jornada: boas-vindas → cidade → mapa → ONG → animal → wa.me com 
   await tap(home.findNgosLink);
   await tap(location.manualButton);
   await location.cityField.fill('São Paulo');
-  await tap(location.cityOption('São Paulo, SP'));
+  await tap(location.cityOption('São Paulo Cidade · SP'));
   await page.waitForURL('**/mapa#**');
   // The Goal counts taps from the already centered map (spec.md Goals).
   onMap = true;
@@ -84,7 +84,8 @@ test('jornada: boas-vindas → cidade → mapa → ONG → animal → wa.me com 
   await expect(ngo.directionsLink).toHaveAttribute('target', '_blank');
   await expect(ngo.today).toHaveCount(1);
   // NGO-05: "Só disponíveis" starts on.
-  await expect(ngo.onlyAvailable).toBeChecked();
+  // T189 (O-06): a toggle chip, so "checked" is aria-pressed.
+  await expect(ngo.onlyAvailable).toHaveAttribute('aria-pressed', 'true');
   expect(await seriousAxeViolations(page)).toEqual([]);
 
   await tap(ngo.animal('Bob'));
@@ -164,7 +165,7 @@ test('NGO-06: o filtro de espécie vira search param e só mostra gatos', async 
   const ngo = new NgoPage(page);
   await ngo.goto(PATAS.slug);
 
-  await ngo.chip('Gato').click();
+  await ngo.filter('Espécie').selectOption('CAT');
 
   await page.waitForURL(`**/ong/${PATAS.slug}?species=CAT`);
   await expect(ngo.animal('Nina')).toBeVisible();
@@ -190,12 +191,13 @@ test('NGO-08: ONG sem animais convida para o WhatsApp', async ({ page }) => {
 
   await ngo.goto('recanto-bicho-feliz');
 
-  await expect(ngo.emptyNgoTitle).toBeVisible();
+  await expect(ngo.emptyNgoTitle('Recanto Bicho Feliz')).toBeVisible();
   await expect(ngo.animalCards).toHaveCount(0);
   await expect(
     page
       .locator('[data-slot="empty-state"]')
-      .getByRole('link', { name: 'Falar com a ONG no WhatsApp' }),
+      // T189 (O-07): the invitation's button is "Perguntar no WhatsApp".
+      .getByRole('link', { name: 'Perguntar no WhatsApp' }),
   ).toHaveAttribute(
     'href',
     waUrl('5511987650005', 'Olá! Vi a Recanto Bicho Feliz no Animal Helper.'),
@@ -257,4 +259,29 @@ test('SHARE-04: o HTML servido de /ong/{slug} tem og:title, og:image e o canonic
     ),
   );
   expect(baseURL).toBeTruthy();
+});
+
+test('PERF-04/T176: o mini mapa só monta perto da área visível, no lugar da moldura do mesmo tamanho', async ({
+  page,
+}) => {
+  // Short screen: the address map starts more than 200 px below the fold.
+  await page.setViewportSize({ width: 390, height: 400 });
+  const ngo = new NgoPage(page);
+  await ngo.goto(PATAS.slug);
+  const frame = page.locator('[data-slot="ngo-mini-map-frame"]');
+  const map = page.locator('.leaflet-container');
+
+  await expect(frame).toHaveCount(1);
+  await expect(map).toHaveCount(0);
+  const frameBox = (await frame.boundingBox())!;
+
+  await frame.scrollIntoViewIfNeeded();
+
+  await expect(map).toBeVisible();
+  await expect(frame).toHaveCount(0);
+  const mapBox = (await map.boundingBox())!;
+  expect([mapBox.width, mapBox.height]).toEqual([
+    frameBox.width,
+    frameBox.height,
+  ]);
 });

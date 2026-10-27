@@ -25,6 +25,9 @@
     "typecheck": {
       "dependsOn": ["^generate", "generate"]
     },
+    "web#typecheck": {
+      "dependsOn": ["^generate", "generate", "build"]
+    },
     "lint": {
       "dependsOn": ["^generate", "generate"]
     },

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { authDictionary, LoginContainer } from '@/features/auth';
 import { AuthShell } from '@/components/ui/auth-shell';
+import { DemoAccount } from './demo-account';
 
 // Figcraft photo of this screen, as a WebP in public/ (PERF-02).
 const LOGIN_PHOTO = {
@@ -22,9 +23,15 @@ export default function LoginRoute({ searchParams }: PageProps<'/entrar'>) {
       photo={LOGIN_PHOTO}
       phrase={authDictionary.panelPhrase}
     >
-      <Suspense fallback={null}>
-        <LoginContainer searchParams={searchParams} />
-      </Suspense>
+      <div className="flex flex-col gap-6">
+        {/* AD-008: the shared account's credentials (locked demo only). */}
+        <Suspense fallback={null}>
+          <DemoAccount />
+        </Suspense>
+        <Suspense fallback={null}>
+          <LoginContainer searchParams={searchParams} />
+        </Suspense>
+      </div>
     </AuthShell>
   );
 }

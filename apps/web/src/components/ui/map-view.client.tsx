@@ -75,6 +75,8 @@ export interface MapViewProps {
   circle?: { center: LatLngTuple; radiusM: number };
   /** Extra react-leaflet layers, e.g. a draggable marker. */
   children?: React.ReactNode;
+  /** A still picture: no drag, zoom (gestures, keys or buttons). Read once, on mount. */
+  fixed?: boolean;
   className?: string;
 }
 
@@ -332,6 +334,7 @@ export function MapView({
   anchored,
   circle,
   children,
+  fixed = false,
   className,
 }: MapViewProps) {
   // A11Y-09: no zoom, fade or cluster animation.
@@ -356,14 +359,22 @@ export function MapView({
       fadeAnimation={animate}
       markerZoomAnimation={animate}
       inertia={animate}
+      dragging={!fixed}
+      scrollWheelZoom={!fixed}
+      doubleClickZoom={!fixed}
+      touchZoom={!fixed}
+      boxZoom={!fixed}
+      keyboard={!fixed}
       // Replaced below by one with Portuguese titles.
       zoomControl={false}
       className={cn(ATTRIBUTION_STYLE, ZOOM_STYLE, 'size-full', className)}
     >
-      <ZoomControl
-        zoomInTitle={ZOOM_LABELS.zoomIn}
-        zoomOutTitle={ZOOM_LABELS.zoomOut}
-      />
+      {!fixed && (
+        <ZoomControl
+          zoomInTitle={ZOOM_LABELS.zoomIn}
+          zoomOutTitle={ZOOM_LABELS.zoomOut}
+        />
+      )}
       <TileLayer url={tileUrl} attribution={attribution} maxZoom={MAX_ZOOM} />
       <MapBehaviour bounds={bounds} label={label} animate={animate} />
       {onMoveEnd && (

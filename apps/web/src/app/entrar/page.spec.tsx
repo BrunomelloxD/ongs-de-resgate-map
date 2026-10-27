@@ -11,6 +11,8 @@ vi.mock('@/features/auth', () => ({
   },
 }));
 
+vi.mock('./demo-account', () => ({ DemoAccount: () => <p>demo-account</p> }));
+
 describe('/entrar', () => {
   it('compõe o login da feature e repassa os parâmetros da URL', () => {
     const searchParams = Promise.resolve({ email: 'contato@patas.org' });
@@ -21,6 +23,19 @@ describe('/entrar', () => {
 
     expect(screen.getByRole('main')).toHaveTextContent('login-container');
     expect(received.searchParams).toBe(searchParams);
+  });
+
+  it('mostra as credenciais da conta demo acima do formulário (DEP-18)', () => {
+    render(
+      <LoginRoute
+        params={Promise.resolve({})}
+        searchParams={Promise.resolve({})}
+      />,
+    );
+
+    expect(screen.getByRole('main').textContent).toMatch(
+      /demo-account[\s\S]*login-container/,
+    );
   });
 
   it('tem o título da página', () => {

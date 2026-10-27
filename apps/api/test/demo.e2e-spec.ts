@@ -52,6 +52,9 @@ describe('GET /api/v1/demo com a demo ligada (e2e)', () => {
         maxUploadMb: 7,
         maxStorageMb: 250,
       },
+      locked: false,
+      account: null,
+      mapStart: null,
     });
   });
 });

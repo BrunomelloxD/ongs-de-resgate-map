@@ -78,6 +78,7 @@ function FakePinPicker(props: PinPickerProps) {
 
 interface Options {
   values?: Partial<AddressFieldsValues>;
+  savedReadOnly?: boolean;
   /** An Error makes the Server Action call fail (network down). */
   cep?: CepLookupResult | Promise<CepLookupResult> | Error;
   geocode?: GeocodeAddressResult | Promise<GeocodeAddressResult> | Error;
@@ -86,6 +87,7 @@ interface Options {
 
 function renderFields({
   values = {},
+  savedReadOnly,
   cep = FOUND,
   geocode = { found: true, lat: -23.5869, lng: -46.6347 },
   errors,
@@ -118,6 +120,7 @@ function renderFields({
         PinPicker={FakePinPicker}
         tileUrl="http://tiles.test/{z}/{x}/{y}.png"
         attribution="© OpenStreetMap contributors"
+        savedReadOnly={savedReadOnly}
       />
     );
   }
@@ -357,6 +360,47 @@ describe('AddressFields', () => {
     await userEvent.click(field('Número'));
     await userEvent.tab();
     expect(geocodeAddress).not.toHaveBeenCalled();
+  });
+
+  describe('savedReadOnly (perfil)', () => {
+    const SAVED_VALUES = {
+      cep: '04015-012',
+      street: 'Rua Joaquim Távora',
+      number: '1240',
+      district: 'Vila Mariana',
+      city: 'São Paulo',
+      uf: 'SP',
+      location: {
+        lat: -23.58,
+        lng: -46.63,
+        confirmedAt: '2026-10-20T12:00:00.000Z',
+      },
+    };
+
+    it('DEP-60: o pino da localização cadastrada fica somente leitura', () => {
+      renderFields({ values: SAVED_VALUES, savedReadOnly: true });
+
+      expect(pickers.last?.readOnly).toBe(true);
+      expect(pickers.last?.position).toEqual([-23.58, -46.63]);
+    });
+
+    it('DEP-61: mudar o endereço traz de volta o pino editável', async () => {
+      renderFields({ values: SAVED_VALUES, savedReadOnly: true });
+
+      await userEvent.clear(field('Número'));
+      await userEvent.type(field('Número'), '1300');
+      await userEvent.tab();
+
+      expect(await screen.findByTestId('pin-picker')).toBeVisible();
+      expect(pickers.last?.position).toEqual([-23.5869, -46.6347]);
+      expect(pickers.last?.readOnly).toBe(false);
+    });
+
+    it('sem savedReadOnly (cadastro), o pino salvo continua editável', () => {
+      renderFields({ values: SAVED_VALUES });
+
+      expect(pickers.last?.readOnly).toBe(false);
+    });
   });
 
   it('um CEP digitado de novo durante a busca descarta a resposta antiga', async () => {

@@ -75,6 +75,45 @@ describe('MapPage', () => {
     expect(screen.getByText('ngo-map #c=-22.9,-43.2&r=5')).toBeInTheDocument();
   });
 
+  describe('demo fechada (DEP-21, DEP-22)', () => {
+    const START = { lat: -23.5614, lng: -46.6559, radiusKm: 25 as const };
+
+    it('sem centro na URL, abre no ponto inicial e grava o fragmento, sem pedir a posição', async () => {
+      window.history.replaceState(null, '', '/mapa');
+      const getCurrentPosition = vi.fn();
+      vi.stubGlobal('navigator', {
+        ...navigator,
+        geolocation: { getCurrentPosition },
+      });
+
+      render(<MapPage {...TILES} start={START} />);
+
+      expect(
+        await screen.findByText('ngo-map #c=-23.5614,-46.6559&r=25'),
+      ).toBeInTheDocument();
+      expect(window.location.hash).toBe('#c=-23.5614,-46.6559&r=25');
+      expect(getCurrentPosition).not.toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+
+    it('com centro válido na URL, mantém o da URL', async () => {
+      render(<MapPage {...TILES} start={START} />);
+
+      expect(
+        await screen.findByText('ngo-map #c=-23.5869,-46.6347&r=5'),
+      ).toBeInTheDocument();
+    });
+
+    it('sem ponto inicial (demo aberta), o fragmento vazio vai ao mapa como hoje (MAP-15)', async () => {
+      window.history.replaceState(null, '', '/mapa');
+
+      render(<MapPage {...TILES} start={null} />);
+
+      expect(await screen.findByText('ngo-map')).toBeInTheDocument();
+      expect(window.location.hash).toBe('');
+    });
+  });
+
   it('SEC-01: no servidor não renderiza nada (o fragmento só existe no navegador)', () => {
     expect(renderToString(<MapPage {...TILES} />)).toBe('');
   });

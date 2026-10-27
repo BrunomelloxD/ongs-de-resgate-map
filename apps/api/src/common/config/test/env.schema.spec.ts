@@ -50,6 +50,7 @@ describe('validateEnv', () => {
       DEMO_MAX_IMAGES_PER_ANIMAL: 3,
       DEMO_MAX_UPLOAD_MB: 5,
       DEMO_MAX_STORAGE_MB: 500,
+      DEMO_LOCKED: false,
     });
   });
 
@@ -239,6 +240,86 @@ describe('validateEnv', () => {
       for (const name of SECRETS) {
         expect(message).not.toContain(env[name as keyof typeof env]);
       }
+    });
+  });
+
+  describe('demo fechada (DEMO_LOCKED, AD-008)', () => {
+    const { SMTP_URL: _url, MAIL_FROM: _from, ...WITHOUT_SMTP } = REQUIRED;
+    const ACCOUNT = {
+      DEMO_ACCOUNT_EMAIL: 'demo@animalhelper.example',
+      DEMO_ACCOUNT_PASSWORD: 'Demo1234',
+    };
+
+    it('DEMO_LOCKED é false quando ausente', () => {
+      expect(validateEnv(REQUIRED).DEMO_LOCKED).toBe(false);
+    });
+
+    it('com DEMO_LOCKED=true sobe sem SMTP_URL e sem MAIL_FROM (DEP-14)', () => {
+      const env = validateEnv({
+        ...WITHOUT_SMTP,
+        ...ACCOUNT,
+        DEMO_LOCKED: 'true',
+      });
+
+      expect(env.DEMO_LOCKED).toBe(true);
+      expect(env.SMTP_URL).toBeUndefined();
+      expect(env.MAIL_FROM).toBeUndefined();
+      expect(env.DEMO_ACCOUNT_EMAIL).toBe('demo@animalhelper.example');
+      expect(env.DEMO_ACCOUNT_PASSWORD).toBe('Demo1234');
+    });
+
+    it.each(['SMTP_URL', 'MAIL_FROM'])(
+      'sem DEMO_LOCKED, %s continua obrigatória (DEP-15)',
+      (name) => {
+        const { [name as 'SMTP_URL']: _omitted, ...rest } = REQUIRED;
+
+        expect(() => validateEnv({ ...rest, DEMO_LOCKED: 'false' })).toThrow(
+          new RegExp(name),
+        );
+      },
+    );
+
+    it.each(['DEMO_ACCOUNT_EMAIL', 'DEMO_ACCOUNT_PASSWORD'])(
+      'com DEMO_LOCKED=true, %s é obrigatória',
+      (name) => {
+        const { [name as 'DEMO_ACCOUNT_EMAIL']: _omitted, ...account } =
+          ACCOUNT;
+
+        expect(() =>
+          validateEnv({ ...WITHOUT_SMTP, ...account, DEMO_LOCKED: 'true' }),
+        ).toThrow(new RegExp(name));
+      },
+    );
+
+    it.each(['sim', '1', ''])(
+      'DEMO_LOCKED=%j é recusado e o erro cita o nome (DEP-16)',
+      (value) => {
+        expect(() =>
+          validateEnv({ ...REQUIRED, ...ACCOUNT, DEMO_LOCKED: value }),
+        ).toThrow(/DEMO_LOCKED/);
+      },
+    );
+
+    it('DEMO_ACCOUNT_EMAIL precisa ser um e-mail', () => {
+      expect(() =>
+        validateEnv({
+          ...WITHOUT_SMTP,
+          ...ACCOUNT,
+          DEMO_ACCOUNT_EMAIL: 'não é e-mail',
+          DEMO_LOCKED: 'true',
+        }),
+      ).toThrow(/DEMO_ACCOUNT_EMAIL/);
+    });
+
+    it('DEMO_ACCOUNT_PASSWORD com menos de 8 caracteres é recusada', () => {
+      expect(() =>
+        validateEnv({
+          ...WITHOUT_SMTP,
+          ...ACCOUNT,
+          DEMO_ACCOUNT_PASSWORD: 'curta',
+          DEMO_LOCKED: 'true',
+        }),
+      ).toThrow(/DEMO_ACCOUNT_PASSWORD/);
     });
   });
 });

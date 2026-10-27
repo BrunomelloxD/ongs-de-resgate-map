@@ -2,20 +2,16 @@ import { render, screen, within } from '@testing-library/react';
 import MapRoute, { metadata } from './page';
 
 vi.mock('@/features/map', () => ({
-  MapPageContainer: ({ PlaceSearch }: { PlaceSearch: { name: string } }) => (
-    <p>map-page {PlaceSearch.name}</p>
-  ),
   mapDictionary: { metaTitle: 'Mapa de ONGs', mapLabel: 'Mapa de ONGs' },
 }));
+vi.mock('./map-content', () => ({ MapContent: () => <p>map-content</p> }));
 
 describe('/mapa', () => {
   it('compõe o mapa da feature com um título para leitores de tela', () => {
     render(<MapRoute />);
 
-    // T187: the map gets the location feature's search from here.
-    expect(screen.getByRole('main')).toHaveTextContent(
-      'map-page MapPlaceSearch',
-    );
+    // T187: MapContent hands the location feature's search to the map (map-content.spec).
+    expect(screen.getByRole('main')).toHaveTextContent('map-content');
     expect(
       screen.getByRole('heading', { level: 1, name: 'Mapa de ONGs' }),
     ).toBeInTheDocument();

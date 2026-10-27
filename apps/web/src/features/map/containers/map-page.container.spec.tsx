@@ -10,9 +10,9 @@ vi.mock('react-dom', async (importOriginal) => ({
   preconnect,
 }));
 vi.mock('../map-page.client', () => ({
-  MapPage: ({ tileUrl, attribution, PlaceSearch }: MapPageProps) => (
+  MapPage: ({ tileUrl, attribution, PlaceSearch, start }: MapPageProps) => (
     <p>
-      {tileUrl} | {attribution} | {PlaceSearch.name}
+      {tileUrl} | {attribution} | {PlaceSearch.name} | {JSON.stringify(start)}
     </p>
   ),
 }));
@@ -24,9 +24,19 @@ describe('MapPageContainer', () => {
     // T187: the place search handed in by app/ goes along.
     expect(
       screen.getByText(
-        'http://tiles.test/{z}/{x}/{y}.png | © OpenStreetMap contributors | FakePlaceSearch',
+        'http://tiles.test/{z}/{x}/{y}.png | © OpenStreetMap contributors | FakePlaceSearch | null',
       ),
     ).toBeInTheDocument();
+  });
+
+  it('DEP-22: repassa o ponto inicial da demo fechada', async () => {
+    const start = { lat: -23.5614, lng: -46.6559, radiusKm: 25 as const };
+
+    render(await MapPageContainer({ PlaceSearch: FakePlaceSearch, start }));
+
+    expect(screen.getByText(/FakePlaceSearch/)).toHaveTextContent(
+      JSON.stringify(start),
+    );
   });
 
   it('PERF-04/T176: pré-conecta à origem do TILE_URL', async () => {

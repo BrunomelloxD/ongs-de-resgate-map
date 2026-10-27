@@ -6,11 +6,21 @@ vi.mock('@/features/location', () => ({
   locationDictionary: { metaTitle: 'Localização' },
 }));
 
+vi.mock('./locked-demo-redirect', () => ({
+  LockedDemoRedirect: () => <p>locked-demo-redirect</p>,
+}));
+
 describe('/localizacao', () => {
   it('compõe o seletor de localização da feature', () => {
     render(<LocationRoute />);
 
     expect(screen.getByRole('main')).toHaveTextContent('location-page');
+  });
+
+  it('passa pelo redirect da demo fechada (DEP-21)', () => {
+    render(<LocationRoute />);
+
+    expect(screen.getByText('locked-demo-redirect')).toBeInTheDocument();
   });
 
   it('L-02: no desktop, a ilustração do mapa ocupa a metade direita; é decorativa', () => {

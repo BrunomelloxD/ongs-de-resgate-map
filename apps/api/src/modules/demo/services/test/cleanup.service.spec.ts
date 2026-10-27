@@ -6,6 +6,7 @@ import type {
   ICleanupRepository,
 } from '../../repositories/cleanup.repository.interface.js';
 import { CleanupService } from '../cleanup.service.js';
+import type { DemoAccountService } from '../demo-account.service.js';
 
 const NOW = new Date('2026-10-20T12:00:00.000Z');
 const HOUR_MS = 60 * 60 * 1000;
@@ -17,6 +18,9 @@ interface Options {
   failingNgos?: string[];
   pending?: { count: number; bytes: number };
   pendingFails?: boolean;
+  /** What DemoAccountService.reset resolves to, or 'fails'. */
+  demoReset?:
+    { animals: number; objects: number; bytes: number } | null | 'fails';
 }
 
 function setup(options: Options = {}) {
@@ -44,12 +48,20 @@ function setup(options: Options = {}) {
     ),
   };
   const sessions = { deleteExpired: vi.fn().mockResolvedValue(0) };
+  const demoAccount = {
+    reset: vi.fn(() =>
+      options.demoReset === 'fails'
+        ? Promise.reject(new ServiceUnavailableException())
+        : Promise.resolve(options.demoReset ?? null),
+    ),
+  };
   const service = new CleanupService(
     cleanup as unknown as ICleanupRepository,
     media as unknown as MediaService,
     sessions as unknown as ISessionsRepository,
+    demoAccount as unknown as DemoAccountService,
   );
-  return { service, cleanup, media, sessions };
+  return { service, cleanup, media, sessions, demoAccount };
 }
 
 describe('CleanupService', () => {
@@ -173,5 +185,50 @@ describe('CleanupService', () => {
     expect(Logger.prototype.error).toHaveBeenCalledWith(
       'NGO ngo-1 kept for the next run: bucket fora',
     );
+  });
+
+  describe('reset da conta demo (AD-008)', () => {
+    it('soma os animais, objetos e bytes da conta demo no relatório e no log (DEP-28, DEP-30)', async () => {
+      const log = vi.spyOn(Logger.prototype, 'log');
+      const { service, demoAccount } = setup({
+        expired: [{ id: 'ngo-1', animals: 2 }],
+        demoReset: { animals: 4, objects: 8, bytes: 300 },
+      });
+
+      const report = await service.run();
+
+      expect(demoAccount.reset).toHaveBeenCalledTimes(1);
+      expect(report).toEqual({
+        ngos: 1,
+        animals: 6,
+        objects: 14,
+        bytes: 1300,
+      });
+      expect(log).toHaveBeenCalledWith({ event: 'cleanup', ...report });
+    });
+
+    it('sem demo fechada (reset null) o relatório não muda', async () => {
+      const { service } = setup({ demoReset: null });
+
+      expect(await service.run()).toEqual({
+        ngos: 0,
+        animals: 0,
+        objects: 0,
+        bytes: 0,
+      });
+    });
+
+    it('bucket fora no reset: loga, segue a limpeza e não conta os animais (DEP-31)', async () => {
+      const error = vi.spyOn(Logger.prototype, 'error');
+      const { service, sessions } = setup({ demoReset: 'fails' });
+
+      const report = await service.run();
+
+      expect(report.animals).toBe(0);
+      expect(error).toHaveBeenCalledWith(
+        expect.stringContaining('Demo account animals kept for the next run'),
+      );
+      expect(sessions.deleteExpired).toHaveBeenCalled();
+    });
   });
 });

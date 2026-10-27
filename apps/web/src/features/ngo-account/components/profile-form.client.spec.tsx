@@ -20,7 +20,7 @@ const PIN_AGAIN = 'Confirme a localização no mapa antes de salvar.';
 
 function FakePinPicker(props: PinPickerProps) {
   return (
-    <div data-testid="pin-picker">
+    <div data-testid="pin-picker" data-readonly={String(props.readOnly)}>
       <button
         type="button"
         onClick={() => props.onConfirmedChange(props.position)}
@@ -156,6 +156,15 @@ describe('ProfileForm', () => {
       screen.getByRole('switch', { name: 'Domingo: aberta' }),
     ).not.toBeChecked();
     expect(screen.getByTestId('pin-picker')).toBeInTheDocument();
+  });
+
+  it('DEP-60: no perfil, o mapa da localização cadastrada é somente leitura', () => {
+    renderForm();
+
+    expect(screen.getByTestId('pin-picker')).toHaveAttribute(
+      'data-readonly',
+      'true',
+    );
   });
 
   it('PROF-04: salvar um perfil válido envia os dados e anuncia "Perfil atualizado."', async () => {

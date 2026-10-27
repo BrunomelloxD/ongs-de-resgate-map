@@ -45,6 +45,9 @@ export const AddressNotFound: Story = {
   },
 };
 
+/** DEP-60: the saved location in the profile; the map and the pin don't move. */
+export const ReadOnly: Story = { args: { readOnly: true } };
+
 export const Confirmed: Story = {
   play: async ({ args, canvas }) => {
     await userEvent.click(

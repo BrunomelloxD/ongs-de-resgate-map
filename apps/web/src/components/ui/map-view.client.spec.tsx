@@ -169,6 +169,34 @@ describe('MapView', () => {
     });
   });
 
+  it('por padrão o mapa se move: arrastar, zoom por gesto e por teclado ligados', () => {
+    renderMap();
+
+    expect(recorded.map).toMatchObject({
+      dragging: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      touchZoom: true,
+      boxZoom: true,
+      keyboard: true,
+    });
+  });
+
+  it('DEP-60: fixed desliga arrastar, todo zoom e os botões de zoom', () => {
+    recorded.zoom = {};
+    renderMap({ fixed: true });
+
+    expect(recorded.map).toMatchObject({
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false,
+    });
+    expect(recorded.zoom).toEqual({});
+  });
+
   it('agrupa os pinos com maxClusterRadius: 40 (MAP-04)', () => {
     renderMap();
 

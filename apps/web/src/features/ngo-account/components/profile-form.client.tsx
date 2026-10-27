@@ -428,6 +428,7 @@ export function ProfileForm({
             PinPicker={PinPicker}
             tileUrl={tileUrl}
             attribution={attribution}
+            savedReadOnly
           />
         </section>
 

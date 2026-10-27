@@ -3,14 +3,17 @@ import { preconnect } from 'react-dom';
 import { getEnv } from '@/lib/env';
 import { tileOrigin } from '../lib/tile-origin';
 import { MapPage } from '../map-page.client';
-import type { PlaceSearch } from '../map.types';
+import type { MapStart, PlaceSearch } from '../map.types';
 
 /** Tiles come from the server env, so the provider changes without a rebuild (MAP-01). */
 export async function MapPageContainer({
   PlaceSearch,
+  start = null,
 }: {
   /** "Cidade ou CEP" of the location feature: a feature doesn't import another. */
   PlaceSearch: PlaceSearch;
+  /** `mapStart` of GET /demo, handed in by `app/` (DEP-22). */
+  start?: MapStart | null;
 }) {
   // Request time only: the build has no env.
   await connection();
@@ -23,6 +26,7 @@ export async function MapPageContainer({
       tileUrl={TILE_URL}
       attribution={TILE_ATTRIBUTION}
       PlaceSearch={PlaceSearch}
+      start={start}
     />
   );
 }

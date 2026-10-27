@@ -23,6 +23,7 @@ import {
   SignupResponseDto,
 } from '../dtos/response/signup-response.dto.js';
 import { NgosService } from '../services/ngos.service.js';
+import { BlockedWhenDemoLocked } from '@/common/guards/demo-locked.guard.js';
 
 /** The checks reveal whether a CNPJ or e-mail has an account: 20/min per IP. */
 const VALIDATION_THROTTLE = { default: { limit: 20, ttl: 60_000 } };
@@ -36,6 +37,7 @@ export class NgoSignupController {
   ) {}
 
   @Post()
+  @BlockedWhenDemoLocked()
   @ApiOperation({
     summary: 'Cadastra a ONG e abre a sessão (SIGN-28 a SIGN-32)',
   })

@@ -191,6 +191,13 @@ export class MediaService {
     return this.bucket(() => this.storage.deletePrefix(`ngos/${ngoId}/`));
   }
 
+  /** Animal photos only (saved and pending); the NGO image stays (AD-008 reset). */
+  deleteNgoImages(ngoId: string): Promise<DeletedObjects> {
+    return this.bucket(() =>
+      this.storage.deletePrefix(`ngos/${ngoId}/images/`),
+    );
+  }
+
   /** DEMO-15: uploads never saved with an animal. `count` is in objects. */
   async deletePendingOlderThan(hours: number): Promise<DeletedObjects> {
     const before = new Date(Date.now() - hours * HOUR_MS);

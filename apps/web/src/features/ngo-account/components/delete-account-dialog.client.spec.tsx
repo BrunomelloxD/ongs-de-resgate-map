@@ -112,4 +112,18 @@ describe('DeleteAccountDialog', () => {
 
     expect(screen.getByLabelText('Senha atual')).toHaveValue('');
   });
+
+  it('DEP-20: dentro de um fieldset desativado (demo fechada), o botão não abre o diálogo', async () => {
+    render(
+      <fieldset disabled>
+        <DeleteAccountDialog onDelete={vi.fn()} />
+      </fieldset>,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Excluir conta' }),
+    ).toBeDisabled();
+    await openDialog();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 });

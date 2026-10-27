@@ -150,60 +150,82 @@ function hoursOf(ngo: SeedNgo) {
   ];
 }
 
+/** How a row differs between the example NGOs and the shared demo account. */
+export interface UpsertOptions {
+  isSeed: boolean;
+  email: string;
+  /** Written on create; also on update when `updatePassword` is set. */
+  passwordHash: string;
+  updatePassword?: boolean;
+}
+
+/** Image, row and hours of one NGO; running it again updates the same rows. */
+export async function upsertNgo(
+  prisma: PrismaClient,
+  ngo: SeedNgo,
+  { isSeed, email, passwordHash, updatePassword = false }: UpsertOptions,
+): Promise<void> {
+  const imageKey = `ngos/${ngo.id}/logo/${ngo.logoId}`;
+  const { bytes } = await uploadSeedImage(ngo.logoFile, imageKey, 'ngo');
+
+  const data = {
+    legalName: ngo.name,
+    slug: ngo.slug,
+    description: ngo.description,
+    imageKey,
+    imageBytes: bytes,
+    email,
+    whatsapp: ngo.whatsapp,
+    cep: ngo.cep,
+    street: ngo.street,
+    number: ngo.number,
+    district: ngo.district,
+    city: 'São Paulo',
+    uf: 'SP',
+    lat: ngo.lat,
+    lng: ngo.lng,
+    timezone: 'America/Sao_Paulo',
+    status: 'ACTIVE' as const,
+    isSeed,
+    expiresAt: null,
+    termsVersion: '2026-10-demo',
+  };
+  const dates = {
+    locationConfirmedAt: new Date(),
+    termsAcceptedAt: new Date(),
+  };
+
+  const saved = await prisma.ngo.upsert({
+    where: { cnpj: ngo.cnpj },
+    update: updatePassword ? { ...data, passwordHash } : data,
+    create: {
+      id: ngo.id,
+      cnpj: ngo.cnpj,
+      ...data,
+      ...dates,
+      passwordHash,
+    },
+  });
+
+  for (const hours of hoursOf(ngo)) {
+    await prisma.openingHours.upsert({
+      where: {
+        ngoId_dayOfWeek: { ngoId: saved.id, dayOfWeek: hours.dayOfWeek },
+      },
+      update: hours,
+      create: { ngoId: saved.id, ...hours },
+    });
+  }
+}
+
 export async function seedNgos(prisma: PrismaClient): Promise<number> {
   for (const ngo of SEED_NGOS) {
-    const imageKey = `ngos/${ngo.id}/logo/${ngo.logoId}`;
-    const { bytes } = await uploadSeedImage(ngo.logoFile, imageKey, 'ngo');
-
-    const data = {
-      legalName: ngo.name,
-      slug: ngo.slug,
-      description: ngo.description,
-      imageKey,
-      imageBytes: bytes,
-      email: `${ngo.slug}@seed.animal-helper.example`,
-      whatsapp: ngo.whatsapp,
-      cep: ngo.cep,
-      street: ngo.street,
-      number: ngo.number,
-      district: ngo.district,
-      city: 'São Paulo',
-      uf: 'SP',
-      lat: ngo.lat,
-      lng: ngo.lng,
-      timezone: 'America/Sao_Paulo',
-      status: 'ACTIVE' as const,
+    await upsertNgo(prisma, ngo, {
       isSeed: true,
-      expiresAt: null,
-      termsVersion: '2026-10-demo',
-    };
-    const dates = {
-      locationConfirmedAt: new Date(),
-      termsAcceptedAt: new Date(),
-    };
-
-    const saved = await prisma.ngo.upsert({
-      where: { cnpj: ngo.cnpj },
-      update: data,
-      create: {
-        id: ngo.id,
-        cnpj: ngo.cnpj,
-        ...data,
-        ...dates,
-        // Random and thrown away: a seed NGO never logs in (DEMO-19).
-        passwordHash: await hash(randomBytes(32).toString('hex')),
-      },
+      email: `${ngo.slug}@seed.animal-helper.example`,
+      // Random and thrown away: a seed NGO never logs in (DEMO-19).
+      passwordHash: await hash(randomBytes(32).toString('hex')),
     });
-
-    for (const hours of hoursOf(ngo)) {
-      await prisma.openingHours.upsert({
-        where: {
-          ngoId_dayOfWeek: { ngoId: saved.id, dayOfWeek: hours.dayOfWeek },
-        },
-        update: hours,
-        create: { ngoId: saved.id, ...hours },
-      });
-    }
   }
   return SEED_NGOS.length;
 }

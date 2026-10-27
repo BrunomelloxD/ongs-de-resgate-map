@@ -60,7 +60,7 @@ describe('SignupSteps', () => {
         maxUploadMb={5}
         tileUrl="http://tiles.test/{z}/{x}/{y}.png"
         attribution="© OpenStreetMap contributors"
-        demo={{ enabled: true, retentionDays: 7 }}
+        demo={{ enabled: true, retentionDays: 7, locked: false }}
       />,
     );
 

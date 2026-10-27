@@ -148,4 +148,41 @@ describe('PinPicker', () => {
       '2 pinos',
     );
   });
+
+  describe('readOnly: localização já cadastrada (DEP-60)', () => {
+    it('mapa fixo, pino sem arrasto e sem o botão de confirmar', () => {
+      renderPicker({ readOnly: true });
+
+      expect(recorded.mapView['fixed']).toBe(true);
+      expect(recorded.marker['draggable']).toBe(false);
+      expect(recorded.marker['autoPan']).toBe(false);
+      expect(recorded.marker['position']).toEqual(START);
+      expect(
+        screen.queryByRole('button', { name: 'Confirmar localização' }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Localização cadastrada. Para mudar, altere o endereço.',
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('O pino está na entrada da ONG?'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('o pino tem rótulo sem pedir para arrastar', () => {
+      renderPicker({ readOnly: true });
+
+      expect(recorded.marker['icon']).toEqual({
+        variant: 'selected',
+        label: 'Pino da ONG',
+      });
+    });
+
+    it('sem readOnly, o mapa não é fixo (DEP-61)', () => {
+      renderPicker();
+
+      expect(recorded.mapView['fixed']).toBe(false);
+    });
+  });
 });

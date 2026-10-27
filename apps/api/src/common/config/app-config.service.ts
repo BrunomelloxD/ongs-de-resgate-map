@@ -30,8 +30,11 @@ export class AppConfigService {
     };
   }
 
-  get smtp() {
-    return { url: this.get('SMTP_URL'), from: this.get('MAIL_FROM') };
+  /** null when the demo is locked without SMTP: no e-mail goes out (AD-008). */
+  get smtp(): { url: string; from: string } | null {
+    const url = this.get('SMTP_URL');
+    const from = this.get('MAIL_FROM');
+    return url && from ? { url, from } : null;
   }
 
   get internalApiToken(): string {
@@ -51,6 +54,18 @@ export class AppConfigService {
 
   get webUrl(): string {
     return this.get('WEB_URL');
+  }
+
+  /** AD-008: one shared account; signup, password reset and account changes are off. */
+  get demoLocked(): boolean {
+    return this.get('DEMO_LOCKED');
+  }
+
+  /** The shared account's credentials, shown on /entrar; only while locked. */
+  get demoAccount(): { email: string; password: string } | null {
+    const email = this.get('DEMO_ACCOUNT_EMAIL');
+    const password = this.get('DEMO_ACCOUNT_PASSWORD');
+    return this.demoLocked && email && password ? { email, password } : null;
   }
 
   /** Effective limits: the DEMO_* values only apply while the demo is on. */

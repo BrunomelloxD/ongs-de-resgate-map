@@ -20,7 +20,11 @@ export function AboutDemo({ info, credits }: AboutDemoProps) {
     >
       <h1 className="text-4xl font-extrabold">{t.title}</h1>
       <p className="text-lg text-fg-secondary">
-        {info.enabled ? t.deletion(info.retentionDays) : t.disabled}
+        {info.locked
+          ? t.locked
+          : info.enabled
+            ? t.deletion(info.retentionDays)
+            : t.disabled}
       </p>
 
       <section aria-labelledby="demo-limits" className="flex flex-col gap-4">

@@ -122,4 +122,29 @@ describe('AppConfigService', () => {
       expect(demo.maxUploadMb).toBe(10);
     });
   });
+
+  describe('demo fechada (AD-008)', () => {
+    const ACCOUNT: Partial<Env> = {
+      DEMO_ACCOUNT_EMAIL: 'demo@animalhelper.example',
+      DEMO_ACCOUNT_PASSWORD: 'Demo1234',
+    };
+
+    it('demoLocked segue DEMO_LOCKED', () => {
+      expect(serviceWith({ DEMO_LOCKED: true }).demoLocked).toBe(true);
+      expect(serviceWith({ DEMO_LOCKED: false }).demoLocked).toBe(false);
+    });
+
+    it('demoAccount traz as credenciais só com a demo fechada', () => {
+      expect(
+        serviceWith({ ...ACCOUNT, DEMO_LOCKED: true }).demoAccount,
+      ).toEqual({ email: 'demo@animalhelper.example', password: 'Demo1234' });
+      expect(
+        serviceWith({ ...ACCOUNT, DEMO_LOCKED: false }).demoAccount,
+      ).toBeNull();
+    });
+
+    it('smtp é null sem SMTP_URL (DEP-14)', () => {
+      expect(serviceWith({ DEMO_LOCKED: true }).smtp).toBeNull();
+    });
+  });
 });

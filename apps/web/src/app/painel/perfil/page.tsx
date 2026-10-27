@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { AppBar } from '@/components/ui/app-bar';
 import { getMyNgo } from '@/features/dashboard';
-import { DemoExpiryNotice } from '@/features/demo';
+import { DemoExpiryNotice, DemoLock, getDemoInfo } from '@/features/demo';
 import {
   changePassword,
   deleteAccount,
@@ -20,9 +20,10 @@ export const metadata: Metadata = { title: t.metaTitle };
 // session read also stops the build prerender before getEnv() runs.
 export const instant = false;
 
-/** PROF-01 to PROF-08, DEMO-06. */
+/** PROF-01 to PROF-08, DEMO-06; read-only in the locked demo (DEP-20). */
 export default async function ProfileRoute() {
   const ngo = await getMyNgo();
+  const { locked } = await getDemoInfo();
   const { MAX_UPLOAD_MB, TILE_URL, TILE_ATTRIBUTION } = getEnv();
 
   return (
@@ -36,17 +37,21 @@ export default async function ProfileRoute() {
         titleAs="p"
         back={{ href: '/painel', label: t.back }}
       />
-      <ProfileSections
-        ngo={ngo}
-        maxUploadMb={MAX_UPLOAD_MB}
-        tileUrl={TILE_URL}
-        attribution={TILE_ATTRIBUTION}
-        notice={<DemoExpiryNotice expiresAt={ngo.expiresAt} now={new Date()} />}
-        updateProfile={updateProfile}
-        uploadImage={uploadNgoImage}
-        changePassword={changePassword}
-        deleteAccount={deleteAccount}
-      />
+      <DemoLock locked={locked}>
+        <ProfileSections
+          ngo={ngo}
+          maxUploadMb={MAX_UPLOAD_MB}
+          tileUrl={TILE_URL}
+          attribution={TILE_ATTRIBUTION}
+          notice={
+            <DemoExpiryNotice expiresAt={ngo.expiresAt} now={new Date()} />
+          }
+          updateProfile={updateProfile}
+          uploadImage={uploadNgoImage}
+          changePassword={changePassword}
+          deleteAccount={deleteAccount}
+        />
+      </DemoLock>
     </main>
   );
 }

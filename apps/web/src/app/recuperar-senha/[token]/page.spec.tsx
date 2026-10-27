@@ -11,6 +11,12 @@ vi.mock('@/features/auth', () => ({
   },
 }));
 
+vi.mock('@/features/demo', () => ({
+  DemoLockContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="demo-lock">{children}</div>
+  ),
+}));
+
 describe('/recuperar-senha/[token]', () => {
   it('compõe a nova senha da feature e repassa o token da URL', () => {
     const params = Promise.resolve({ token: 'token-do-link' });
@@ -21,6 +27,19 @@ describe('/recuperar-senha/[token]', () => {
 
     expect(screen.getByRole('main')).toHaveTextContent('reset-container');
     expect(received.params).toBe(params);
+  });
+
+  it('o formulário fica dentro do bloqueio da demo fechada (DEP-19)', () => {
+    render(
+      <ResetPasswordRoute
+        params={Promise.resolve({ token: 't' })}
+        searchParams={Promise.resolve({})}
+      />,
+    );
+
+    expect(screen.getByTestId('demo-lock')).toHaveTextContent(
+      'reset-container',
+    );
   });
 
   it('tem o título da página', () => {

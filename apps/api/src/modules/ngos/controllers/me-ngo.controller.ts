@@ -36,6 +36,7 @@ import { DeleteAccountDto } from '../dtos/request/delete-account.dto.js';
 import { UpdateNgoDto } from '../dtos/request/update-ngo.dto.js';
 import { NgoMeDto } from '../dtos/response/ngo-me-response.dto.js';
 import { NgosService } from '../services/ngos.service.js';
+import { BlockedWhenDemoLocked } from '@/common/guards/demo-locked.guard.js';
 
 /** The NGO always comes from the session token, never from the body (SEC-05). */
 @ApiTags('Me')
@@ -54,6 +55,7 @@ export class MeNgoController {
   }
 
   @Patch()
+  @BlockedWhenDemoLocked()
   @ApiOperation({
     summary: 'Edita o perfil, sem o CNPJ (PROF-02 a PROF-04, DEMO-05)',
   })
@@ -71,6 +73,7 @@ export class MeNgoController {
   }
 
   @Put('image')
+  @BlockedWhenDemoLocked()
   // Multer limits come from MulterModule (ngos.module.ts); the file stays in memory.
   @UseInterceptors(FileInterceptor('file'))
   @UseFilters(UploadTooLargeFilter)
@@ -99,6 +102,7 @@ export class MeNgoController {
   }
 
   @Delete()
+  @BlockedWhenDemoLocked()
   @HttpCode(204)
   @ApiOperation({
     summary: 'Exclui a conta, os dados e as imagens (PROF-07, PROF-08)',

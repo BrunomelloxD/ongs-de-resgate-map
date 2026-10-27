@@ -22,8 +22,11 @@ export interface StepReviewProps {
   /** NGO image kept in memory, shown as in step 1. */
   image: File | null;
   onChange: (values: Partial<ReviewValues>) => void;
-  /** From GET /demo: the demo acceptance only exists while the demo is on (DEMO-03, DEMO-20). */
-  demo: { enabled: boolean; retentionDays: number };
+  /**
+   * From GET /demo: the demo acceptance only exists while the demo is on
+   * (DEMO-03, DEMO-20); a locked demo can't create accounts (AD-008, DEP-19).
+   */
+  demo: { enabled: boolean; retentionDays: number; locked?: boolean };
   /** Called on "Criar conta" with every acceptance in place. */
   onSubmit: () => void;
   onBack: () => void;
@@ -98,7 +101,7 @@ export function StepReview({
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (accepted && !pending) onSubmit();
+    if (accepted && !pending && !demo.locked) onSubmit();
   }
 
   return (
@@ -210,7 +213,11 @@ export function StepReview({
           <Button type="button" variant="outline" size="lg" onClick={onBack}>
             {t.review.back}
           </Button>
-          <Button type="submit" size="lg" disabled={!accepted || pending}>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={!accepted || pending || demo.locked}
+          >
             {pending ? t.review.pending : t.review.submit}
           </Button>
         </ActionBar>

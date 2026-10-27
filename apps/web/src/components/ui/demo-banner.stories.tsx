@@ -23,3 +23,6 @@ export const SevenDays: Story = {
 };
 
 export const ThirtyDays: Story = { args: { days: 30 } };
+
+/** DEP-62: the locked demo (AD-008). */
+export const Locked: Story = { args: { locked: true } };

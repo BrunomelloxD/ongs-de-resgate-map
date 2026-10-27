@@ -52,6 +52,7 @@ O `make install` cria os `.env` que faltam a partir dos `.env.example` (nunca so
 | `make reset`                 | apaga o banco local, reaplica as migrations e roda os seeders (pede confirmação) |
 | `make gate`                  | tudo que o CI roda: formatação, lint, tipos, testes (100%), build e Storybook    |
 | `make e2e`                   | testes E2E (Playwright) contra a stack                                           |
+| `make smoke`                 | constrói as imagens de produção sem `.env` e confere que sobem                   |
 | `make storybook`             | Storybook do web                                                                 |
 
 Lista completa em [ARCHITECTURE.md](ARCHITECTURE.md#7-comandos-na-raiz).
@@ -60,4 +61,6 @@ Lista completa em [ARCHITECTURE.md](ARCHITECTURE.md#7-comandos-na-raiz).
 
 O MVP roda em modo demonstração: os dados de cada ONG são apagados depois de alguns dias (`DEMO_RETENTION_DAYS`), e há cotas de ONGs, animais e fotos. A limpeza roda uma vez por dia como serviço cron (`node dist/app/cleanup.cli.js`); no dev, rode à mão com `npm run build --workspace=apps/api && npm run cleanup --workspace=apps/api`, com o `apps/api/.env` apontando para o banco local e o MinIO.
 
-A api fica só na rede privada e aceita apenas chamadas do web, com o `INTERNAL_API_TOKEN`. Variáveis, serviços, limpeza e segurança da operação: [ARCHITECTURE.md §12](ARCHITECTURE.md#12-operação-da-demo).
+Em produção, a demo é **fechada** (`DEMO_LOCKED=true`): uma conta de ONG compartilhada, com as credenciais exibidas na tela de login, sem cadastro de ONG nem recuperação de senha. O visitante cadastra até 10 animais, e a limpeza diária zera a conta.
+
+A api fica só na rede privada e aceita apenas chamadas do web, com o `INTERNAL_API_TOKEN`. Deploy no Railway, variáveis, serviços, limpeza e operação: [ARCHITECTURE.md §12](ARCHITECTURE.md#12-operação-da-demo).

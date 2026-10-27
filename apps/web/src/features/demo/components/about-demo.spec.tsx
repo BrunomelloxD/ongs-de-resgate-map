@@ -1,5 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { makeDemoInfo, makePhotoCredit } from '../test-fixtures';
+import {
+  makeDemoInfo,
+  makeLockedDemoInfo,
+  makePhotoCredit,
+} from '../test-fixtures';
 import { AboutDemo } from './about-demo';
 
 function valueOf(label: string) {
@@ -30,6 +34,19 @@ describe('AboutDemo', () => {
         'Esta é uma demonstração. Cada ONG cadastrada aqui é apagada automaticamente 7 dias depois do cadastro, junto com os animais e as fotos. As ONGs de exemplo não são apagadas.',
       ),
     ).toBeVisible();
+  });
+
+  it('demo fechada (DEP-63): explica a conta de demonstração e o reset diário, sem os 7 dias', () => {
+    render(<AboutDemo info={makeLockedDemoInfo()} credits={[]} />);
+
+    expect(
+      screen.getByText(
+        'Esta é uma demonstração fechada: não é possível cadastrar ONGs. Entre com a conta de demonstração, mostrada na tela de login, para conhecer o painel. Os animais cadastrados nela são apagados todos os dias; as ONGs de exemplo não são apagadas.',
+      ),
+    ).toBeVisible();
+    expect(
+      screen.queryByText(/apagada automaticamente 7 dias/),
+    ).not.toBeInTheDocument();
   });
 
   it('mostra as 6 cotas e os dias de retenção com os valores recebidos', () => {

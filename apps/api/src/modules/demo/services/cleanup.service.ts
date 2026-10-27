@@ -3,6 +3,7 @@ import { MediaService } from '@/modules/media/services/media.service.js';
 import { ISessionsRepository } from '@/modules/sessions/repositories/sessions.repository.interface.js';
 import { SESSION_IDLE_TTL_MS } from '@/modules/sessions/services/sessions.service.js';
 import { ICleanupRepository } from '../repositories/cleanup.repository.interface.js';
+import { DemoAccountService } from './demo-account.service.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 /** DEMO-15: uploads not saved with an animal for this long are orphans. */
@@ -31,6 +32,7 @@ export class CleanupService {
     private readonly cleanup: ICleanupRepository,
     private readonly media: MediaService,
     private readonly sessions: ISessionsRepository,
+    private readonly demoAccount: DemoAccountService,
   ) {}
 
   async run(): Promise<CleanupReport> {
@@ -51,6 +53,20 @@ export class CleanupService {
           `NGO ${ngo.id} kept for the next run: ${message(error)}`,
         );
       }
+    }
+
+    // AD-008: the shared account starts every day with no animals.
+    try {
+      const reset = await this.demoAccount.reset();
+      if (reset) {
+        report.animals += reset.animals;
+        report.objects += reset.objects;
+        report.bytes += reset.bytes;
+      }
+    } catch (error) {
+      this.logger.error(
+        `Demo account animals kept for the next run: ${message(error)}`,
+      );
     }
 
     try {

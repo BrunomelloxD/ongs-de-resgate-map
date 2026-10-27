@@ -43,7 +43,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Modo demo: retenção e cotas atuais (banner e /sobre-a-demo) */
+        /** Modo demo: retenção, cotas e demo fechada (banner, /sobre-a-demo, /entrar, /mapa) */
         get: operations["DemoController_get_v1"];
         put?: never;
         post?: never;
@@ -439,12 +439,41 @@ export interface components {
             /** @example 500 */
             maxStorageMb: number;
         };
+        DemoAccountDto: {
+            /** @example demo@animalhelper.example */
+            email: string;
+            /**
+             * @description Pública: aparece no /entrar
+             * @example Demo1234
+             */
+            password: string;
+        };
+        MapStartDto: {
+            /** @example -23.5651 */
+            lat: number;
+            /** @example -46.6519 */
+            lng: number;
+            /**
+             * @example 25
+             * @enum {number}
+             */
+            radiusKm: 5 | 10 | 25;
+        };
         DemoConfigResponseDto: {
             /** @example true */
             enabled: boolean;
             /** @example 7 */
             retentionDays: number;
             quotas: components["schemas"]["DemoQuotasDto"];
+            /**
+             * @description Demo fechada: conta compartilhada, sem cadastro (AD-008)
+             * @example false
+             */
+            locked: boolean;
+            /** @description Credenciais da conta compartilhada; só com locked */
+            account: components["schemas"]["DemoAccountDto"] | null;
+            /** @description Onde o mapa abre sem centro na URL; só com locked (DEP-22) */
+            mapStart: components["schemas"]["MapStartDto"] | null;
         };
         UploadedImageResponseDto: {
             /** Format: uuid */
@@ -1540,6 +1569,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Indisponível na demo. (AD-008) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description CNPJ ou e-mail já cadastrado, com `field` (SIGN-31), ou limite de ONGs da demo (DEMO-07) */
             409: {
                 headers: {
@@ -1757,7 +1793,11 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Senha atual incorreta. */
+            /**
+             * @description Senha atual incorreta.
+             *
+             *     Indisponível na demo. (AD-008)
+             */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1808,6 +1848,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Indisponível na demo. (AD-008) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description E-mail de outra ONG, com `field` */
             409: {
                 headers: {
@@ -1850,6 +1897,13 @@ export interface operations {
             };
             /** @description Sem sessão válida */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Indisponível na demo. (AD-008) */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2228,6 +2282,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Indisponível na demo. (AD-008) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Muitos pedidos. Tente de novo em 1 hora. */
             429: {
                 headers: {
@@ -2264,6 +2325,13 @@ export interface operations {
             };
             /** @description Senha fora das regras (SIGN-15) */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Indisponível na demo. (AD-008) */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2312,7 +2380,11 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Senha atual incorreta. */
+            /**
+             * @description Senha atual incorreta.
+             *
+             *     Indisponível na demo. (AD-008)
+             */
             403: {
                 headers: {
                     [name: string]: unknown;

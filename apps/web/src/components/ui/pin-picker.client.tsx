@@ -22,8 +22,10 @@ export const PIN_PICKER_TEXT = {
   hint: 'Se não estiver, arraste o pino até o lugar certo. É ali que os visitantes vão chegar.',
   confirm: 'Confirmar localização',
   confirmed: 'Localização confirmada.',
+  saved: 'Localização cadastrada. Para mudar, altere o endereço.',
   map: 'Mapa com o pino da ONG',
   pin: 'Pino da ONG, arraste até o local',
+  savedPin: 'Pino da ONG',
   cluster: (count: number) => `${count} pinos`,
 } as const;
 
@@ -42,6 +44,8 @@ export interface PinPickerProps {
   notFound?: boolean;
   /** Confirmed position, or `null` once moving the pin undoes it (SIGN-21, SIGN-22, PROF-03). */
   onConfirmedChange: (position: LatLngTuple | null) => void;
+  /** DEP-60: the saved location, shown still: no pan, zoom, drag or confirmation. */
+  readOnly?: boolean;
   className?: string;
 }
 
@@ -62,11 +66,19 @@ export function PinPicker({
   position,
   notFound = false,
   onConfirmedChange,
+  readOnly = false,
   className,
 }: PinPickerProps) {
   const [current, setCurrent] = useState(position);
   const [confirmed, setConfirmed] = useState(false);
-  const icon = useMemo(() => pinIcon('selected', PIN_PICKER_TEXT.pin), []);
+  const icon = useMemo(
+    () =>
+      pinIcon(
+        'selected',
+        readOnly ? PIN_PICKER_TEXT.savedPin : PIN_PICKER_TEXT.pin,
+      ),
+    [readOnly],
+  );
   const [bounds] = useState(() => frameAround(position));
 
   function unconfirm() {
@@ -98,16 +110,41 @@ export function PinPicker({
           bounds={bounds}
           label={PIN_PICKER_TEXT.map}
           clusterLabel={PIN_PICKER_TEXT.cluster}
+          fixed={readOnly}
         >
           <Marker
             position={current}
             icon={icon}
-            draggable
-            autoPan
+            draggable={!readOnly}
+            autoPan={!readOnly}
             eventHandlers={{ dragend: handleDragEnd }}
           />
         </MapView>
       </div>
+      {readOnly ? (
+        <p className="text-sm text-fg-secondary">{PIN_PICKER_TEXT.saved}</p>
+      ) : (
+        <PickerActions
+          notFound={notFound}
+          confirmed={confirmed}
+          onConfirm={handleConfirm}
+        />
+      )}
+    </div>
+  );
+}
+
+function PickerActions({
+  notFound,
+  confirmed,
+  onConfirm,
+}: {
+  notFound: boolean;
+  confirmed: boolean;
+  onConfirm: () => void;
+}) {
+  return (
+    <>
       {notFound ? (
         <Alert variant="error" title={PIN_PICKER_TEXT.notFound} />
       ) : (
@@ -124,10 +161,10 @@ export function PinPicker({
         size="sm"
         className="touch-target self-start"
         aria-pressed={confirmed}
-        onClick={handleConfirm}
+        onClick={onConfirm}
       >
         {PIN_PICKER_TEXT.confirm}
       </Button>
-    </div>
+    </>
   );
 }

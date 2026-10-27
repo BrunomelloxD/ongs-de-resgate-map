@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { authDictionary, ResetPasswordContainer } from '@/features/auth';
 import { AuthShell } from '@/components/ui/auth-shell';
+import { DemoLockContainer } from '@/features/demo';
 
 // Figcraft photo of this screen, as a WebP in public/ (PERF-02).
 const RECOVER_PHOTO = {
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 };
 
 // The token comes from the URL, so the container streams inside Suspense.
+// The locked demo disables the form (DEP-19).
 export default function ResetPasswordRoute({
   params,
 }: PageProps<'/recuperar-senha/[token]'>) {
@@ -25,7 +27,9 @@ export default function ResetPasswordRoute({
       phrase={authDictionary.panelPhrase}
     >
       <Suspense fallback={null}>
-        <ResetPasswordContainer params={params} />
+        <DemoLockContainer>
+          <ResetPasswordContainer params={params} />
+        </DemoLockContainer>
       </Suspense>
     </AuthShell>
   );

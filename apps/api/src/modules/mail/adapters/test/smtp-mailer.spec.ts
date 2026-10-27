@@ -1,5 +1,4 @@
 import nodemailer, { type Transporter } from 'nodemailer';
-import type { AppConfigService } from '@/common/config/app-config.service.js';
 import { passwordResetEmail } from '../../templates/password-reset.js';
 import { MailDeliveryFailed, SmtpMailer } from '../smtp-mailer.js';
 
@@ -14,7 +13,7 @@ function setup() {
   const createTransport = vi
     .spyOn(nodemailer, 'createTransport')
     .mockReturnValue({ sendMail } as unknown as Transporter);
-  const mailer = new SmtpMailer({ smtp: SMTP } as AppConfigService);
+  const mailer = new SmtpMailer(SMTP);
   return { mailer, sendMail, createTransport };
 }
 

@@ -40,8 +40,8 @@ export interface SignupWizardProps {
   slug: SignupSlug;
   /** MAX_UPLOAD_MB (SIGN-10). */
   maxUploadMb: number;
-  /** From GET /demo (DEMO-03, DEMO-20). */
-  demo: { enabled: boolean; retentionDays: number };
+  /** From GET /demo (DEMO-03, DEMO-20; `locked`: AD-008). */
+  demo: { enabled: boolean; retentionDays: number; locked?: boolean };
   /** `createAccount` bound to the image upload, by the app. Opens /painel on success. */
   createAccount: (
     formData: FormData,

@@ -39,6 +39,7 @@ import {
 import { SessionResponseDto } from '../dtos/response/session-response.dto.js';
 import { AuthService } from '../services/auth.service.js';
 import { PasswordService } from '../services/password.service.js';
+import { BlockedWhenDemoLocked } from '@/common/guards/demo-locked.guard.js';
 
 const RETRY_AFTER = {
   'Retry-After': {
@@ -85,6 +86,7 @@ export class AuthController {
   }
 
   @Post('auth/password-resets')
+  @BlockedWhenDemoLocked()
   @HttpCode(202)
   @ApiOperation({
     summary: 'Pede o link de recuperação; sempre 202 (AUTH-08, AUTH-09)',
@@ -105,6 +107,7 @@ export class AuthController {
   }
 
   @Post('auth/password-resets/:token')
+  @BlockedWhenDemoLocked()
   @HttpCode(204)
   @ApiOperation({
     summary: 'Troca a senha pelo link e revoga as sessões (AUTH-12, AUTH-13)',
@@ -121,6 +124,7 @@ export class AuthController {
   }
 
   @Put('me/password')
+  @BlockedWhenDemoLocked()
   @HttpCode(204)
   @UseGuards(SessionGuard)
   @ApiBearerAuth()

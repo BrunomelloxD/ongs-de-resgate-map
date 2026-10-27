@@ -11,5 +11,5 @@ export async function DemoBannerContainer() {
   const info = await getDemoInfo().catch(() => null);
   if (!info?.enabled) return null;
 
-  return <DemoBanner days={info.retentionDays} />;
+  return <DemoBanner days={info.retentionDays} locked={info.locked} />;
 }

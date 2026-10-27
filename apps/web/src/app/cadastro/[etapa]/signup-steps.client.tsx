@@ -17,7 +17,7 @@ export interface SignupStepsProps {
   maxUploadMb: number;
   tileUrl: string;
   attribution: string;
-  demo: { enabled: boolean; retentionDays: number };
+  demo: { enabled: boolean; retentionDays: number; locked: boolean };
 }
 
 /** Joins the signup with the address and hours fields of `ngo-account` and the location actions. */

@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { LocationPage, locationDictionary } from '@/features/location';
 import { AppBar } from '@/components/ui/app-bar';
 import { Navbar } from '@/components/ui/navbar.client';
 import { logout } from '@/features/auth';
+import { LockedDemoRedirect } from './locked-demo-redirect';
 
 export const metadata: Metadata = {
   title: locationDictionary.metaTitle,
@@ -15,6 +17,10 @@ const LOCATION_MAP_ART = '/photos/location-map.webp';
 export default function LocationRoute() {
   return (
     <>
+      {/* AD-008: the locked demo skips to /mapa (DEP-21). */}
+      <Suspense fallback={null}>
+        <LockedDemoRedirect />
+      </Suspense>
       <Navbar current="map" logoutAction={logout} />
       <main
         id="conteudo"

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect } from 'storybook/test';
 import credits from '../credits.json';
-import { makeDemoInfo } from '../test-fixtures';
+import { makeDemoInfo, makeLockedDemoInfo } from '../test-fixtures';
 import { AboutDemo } from './about-demo';
 
 const meta = {
@@ -25,3 +25,6 @@ export const DemoOff: Story = {
 };
 
 export const WithoutCredits: Story = { args: { credits: [] } };
+
+/** DEP-63: the locked demo (AD-008). */
+export const Locked: Story = { args: { info: makeLockedDemoInfo() } };

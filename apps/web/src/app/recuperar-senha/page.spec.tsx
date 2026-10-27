@@ -11,6 +11,12 @@ vi.mock('@/features/auth', () => ({
   ),
 }));
 
+vi.mock('@/features/demo', () => ({
+  DemoLockContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="demo-lock">{children}</div>
+  ),
+}));
+
 describe('/recuperar-senha', () => {
   it('compõe o formulário com a action de pedido de recuperação', () => {
     render(<ForgotPasswordRoute />);
@@ -18,6 +24,12 @@ describe('/recuperar-senha', () => {
     expect(screen.getByRole('main')).toHaveTextContent(
       'forgot-form com a action',
     );
+  });
+
+  it('o formulário fica dentro do bloqueio da demo fechada (DEP-19)', () => {
+    render(<ForgotPasswordRoute />);
+
+    expect(screen.getByTestId('demo-lock')).toHaveTextContent('forgot-form');
   });
 
   it('tem o título da página', () => {

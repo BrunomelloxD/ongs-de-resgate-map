@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { getDemoInfo } from '../queries/get-demo-info';
-import { makeDemoInfo } from '../test-fixtures';
+import { makeDemoInfo, makeLockedDemoInfo } from '../test-fixtures';
 import { DemoBannerContainer } from './demo-banner.container';
 
 vi.mock('../queries/get-demo-info', () => ({ getDemoInfo: vi.fn() }));
@@ -19,6 +19,18 @@ describe('DemoBannerContainer', () => {
         name: 'Demonstração: os dados são apagados em 7 dias',
       }),
     ).toHaveAttribute('href', '/sobre-a-demo');
+  });
+
+  it('demo fechada (DEP-62): a faixa fala dos animais apagados todos os dias', async () => {
+    mockedGetDemoInfo.mockResolvedValue(makeLockedDemoInfo());
+
+    render(await DemoBannerContainer());
+
+    expect(
+      screen.getByRole('link', {
+        name: 'Demonstração: os animais cadastrados são apagados todos os dias',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('demo desligada (DEMO-20): não mostra a faixa', async () => {

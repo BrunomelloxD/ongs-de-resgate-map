@@ -14,6 +14,13 @@ export type MapSpecies = 'DOG' | 'CAT';
 /** RN-09: the only radii the map offers. */
 export type RadiusKm = 5 | 10 | 25;
 
+/** `mapStart` of GET /demo: where the locked demo opens the map (DEP-22). */
+export interface MapStart {
+  lat: number;
+  lng: number;
+  radiusKm: RadiusKm;
+}
+
 /**
  * The "Cidade ou CEP" search of the location feature, handed in by `app/`
  * (a feature doesn't import another). It reports a place, never to the server (SEC-01).

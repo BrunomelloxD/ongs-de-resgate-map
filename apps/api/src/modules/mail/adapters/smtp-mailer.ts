@@ -1,6 +1,4 @@
-import { Injectable } from '@nestjs/common';
 import nodemailer, { type Transporter } from 'nodemailer';
-import { AppConfigService } from '@/common/config/app-config.service.js';
 import type { EmailContent } from '../templates/password-reset.js';
 
 export interface MailMessage extends EmailContent {
@@ -21,16 +19,21 @@ export abstract class IMailer {
   abstract send(message: MailMessage): Promise<void>;
 }
 
+/** SMTP_URL and MAIL_FROM. */
+export interface SmtpSettings {
+  url: string;
+  from: string;
+}
+
 /** Mailpit in dev, a transactional provider in production: only SMTP_URL changes. */
-@Injectable()
 export class SmtpMailer extends IMailer {
   private readonly transport: Transporter;
   private readonly from: string;
 
-  constructor(config: AppConfigService) {
+  constructor(smtp: SmtpSettings) {
     super();
-    this.transport = nodemailer.createTransport(config.smtp.url);
-    this.from = config.smtp.from;
+    this.transport = nodemailer.createTransport(smtp.url);
+    this.from = smtp.from;
   }
 
   async send({ to, subject, text, html }: MailMessage): Promise<void> {

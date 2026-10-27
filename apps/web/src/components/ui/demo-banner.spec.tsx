@@ -11,6 +11,16 @@ describe('DemoBanner', () => {
     expect(link).toHaveAttribute('href', '/sobre-a-demo');
   });
 
+  it('DEP-62: demo fechada fala dos animais apagados todos os dias, com o mesmo link', () => {
+    render(<DemoBanner days={7} locked />);
+
+    expect(
+      screen.getByRole('link', {
+        name: 'Demonstração: os animais cadastrados são apagados todos os dias',
+      }),
+    ).toHaveAttribute('href', '/sobre-a-demo');
+  });
+
   it('usa o número de dias recebido', () => {
     render(<DemoBanner days={30} />);
 

@@ -596,6 +596,41 @@ describe('MediaService.deleteNgoPrefix', () => {
   });
 });
 
+describe('MediaService.deleteNgoImages', () => {
+  it('apaga as fotos de animais de ngos/{id}/images/ e mantém o logo (DEP-28, DEP-29)', async () => {
+    const { service, storage } = setup();
+    await storage.put(
+      `ngos/${NGO_ID}/images/x-160.webp`,
+      Buffer.from('12'),
+      'x',
+    );
+    await storage.put(
+      `ngos/${NGO_ID}/logo/y-600.webp`,
+      Buffer.from('345'),
+      'x',
+    );
+    await storage.put('ngos/outra/images/z-160.webp', Buffer.from('6'), 'x');
+
+    expect(await service.deleteNgoImages(NGO_ID)).toEqual({
+      count: 1,
+      bytes: 2,
+    });
+    expect(storage.keys().sort()).toEqual([
+      `ngos/${NGO_ID}/logo/y-600.webp`,
+      'ngos/outra/images/z-160.webp',
+    ]);
+  });
+
+  it('bucket fora → 503 (DEP-31)', async () => {
+    const { service, storage } = setup();
+    vi.spyOn(storage, 'deletePrefix').mockRejectedValueOnce(new Error('down'));
+
+    const error = await httpError(service.deleteNgoImages(NGO_ID));
+
+    expect(error).toMatchObject({ status: 503 });
+  });
+});
+
 describe('MediaService.deletePendingOlderThan', () => {
   afterEach(() => {
     vi.useRealTimers();

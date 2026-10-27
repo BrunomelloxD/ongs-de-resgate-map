@@ -2,6 +2,9 @@ import { render, screen } from '@testing-library/react';
 import ProfileRoute, { instant, metadata } from './page';
 
 const getMyNgo = vi.hoisted(() => vi.fn());
+const getDemoInfo = vi.hoisted(() =>
+  vi.fn(async () => ({ locked: false }) as { locked: boolean }),
+);
 const recorded = vi.hoisted(() => ({ props: {} as Record<string, unknown> }));
 const actions = vi.hoisted(() => ({
   changePassword: vi.fn(),
@@ -11,7 +14,9 @@ const actions = vi.hoisted(() => ({
 }));
 
 vi.mock('@/features/dashboard', () => ({ getMyNgo }));
-vi.mock('@/features/demo', () => ({
+vi.mock('@/features/demo', async (importOriginal) => ({
+  DemoLock: (await importOriginal<typeof import('@/features/demo')>()).DemoLock,
+  getDemoInfo,
   DemoExpiryNotice: ({ expiresAt }: { expiresAt: string | null }) => (
     <span>aviso {expiresAt}</span>
   ),
@@ -53,6 +58,27 @@ describe('/painel/perfil', () => {
     expect(
       screen.getByRole('link', { name: 'Voltar para o painel' }),
     ).toHaveAttribute('href', '/painel');
+  });
+
+  it('demo aberta: as seções ficam ativas, sem o aviso (DEP-23)', async () => {
+    getMyNgo.mockResolvedValue({ expiresAt: null });
+
+    render(await ProfileRoute());
+
+    expect(screen.getByText(/seções/).closest('fieldset')).toBeNull();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('demo fechada: as seções ficam desativadas, com o aviso (DEP-20)', async () => {
+    getMyNgo.mockResolvedValue({ expiresAt: null });
+    getDemoInfo.mockResolvedValueOnce({ locked: true });
+
+    render(await ProfileRoute());
+
+    expect(screen.getByText(/seções/).closest('fieldset')).toBeDisabled();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Indisponível na demo.',
+    );
   });
 
   it('AUTH-07: o redirect do 401 acontece antes de renderizar', async () => {

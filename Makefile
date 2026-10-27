@@ -7,7 +7,7 @@ API := --workspace=apps/api
 WEB := --workspace=apps/web
 ENV_FILES := .env apps/api/.env apps/web/.env
 
-.PHONY: help install gate dev dev-railway down logs migrate migration seeder reset e2e storybook env db storage
+.PHONY: help install gate smoke dev dev-railway down logs migrate migration seeder reset e2e storybook env db storage
 
 help: ## Lista os comandos
 	@grep -E '^[a-z0-9-]+:.*## ' $(MAKEFILE_LIST) \
@@ -22,6 +22,9 @@ install: env ## Instala as dependências (api, web e pacotes) e prepara o ambien
 
 gate: migrate ## Roda tudo que o CI roda: formatação, lint, tipos, testes (100%), build e Storybook
 	npm run check
+
+smoke: ## Constrói as imagens de produção sem .env, sobe com variáveis de teste e confere /health e /
+	./scripts/smoke.sh
 
 e2e: env ## Sobe a stack em segundo plano e roda os testes E2E (Playwright)
 	$(COMPOSE) up -d --build --wait

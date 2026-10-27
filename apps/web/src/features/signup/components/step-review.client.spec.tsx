@@ -215,4 +215,28 @@ describe('StepReview', () => {
 
     expect(onSubmit).not.toHaveBeenCalled();
   });
+
+  describe('demo fechada (AD-008, DEP-19)', () => {
+    const LOCKED = { ...DEMO_ON, locked: true };
+
+    it('com os aceites marcados, "Criar conta" continua desabilitado', () => {
+      renderStep({ demo: LOCKED }, { termsAccepted: true, demoAccepted: true });
+
+      expect(createButton()).toBeDisabled();
+    });
+
+    it('o envio do formulário não chama onSubmit', () => {
+      const { onSubmit } = renderStep(
+        { demo: LOCKED },
+        { termsAccepted: true, demoAccepted: true },
+      );
+
+      screen
+        .getByRole('checkbox', { name: TERMS })
+        .closest('form')!
+        .requestSubmit();
+
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+  });
 });

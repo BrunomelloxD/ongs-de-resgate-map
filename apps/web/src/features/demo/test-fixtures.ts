@@ -12,8 +12,23 @@ export function makeDemoInfo(overrides: Partial<DemoInfo> = {}): DemoInfo {
       maxUploadMb: 5,
       maxStorageMb: 500,
     },
+    locked: false,
+    account: null,
+    mapStart: null,
     ...overrides,
   };
+}
+
+/** The locked demo (AD-008): shared account and the map's first frame. */
+export function makeLockedDemoInfo(
+  overrides: Partial<DemoInfo> = {},
+): DemoInfo {
+  return makeDemoInfo({
+    locked: true,
+    account: { email: 'demo@animalhelper.example', password: 'Demo1234' },
+    mapStart: { lat: -23.5614, lng: -46.6559, radiusKm: 25 },
+    ...overrides,
+  });
 }
 
 export function makePhotoCredit(

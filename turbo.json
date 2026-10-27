@@ -8,6 +8,7 @@
     },
     "build": {
       "dependsOn": ["^build", "^generate", "generate"],
+      "env": ["MAX_UPLOAD_MB"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "build:no-env": {

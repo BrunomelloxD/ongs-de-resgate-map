@@ -28,6 +28,9 @@ CMD ["npm", "run", "dev"]
 
 # ---------- builder ----------
 FROM deps AS builder
+# next.config.ts reads it for serverActions.bodySizeLimit; unset keeps the default.
+ARG MAX_UPLOAD_MB
+ENV MAX_UPLOAD_MB=$MAX_UPLOAD_MB
 COPY --from=pruner --chown=node:node /app/out/full/ .
 RUN npx turbo run build --filter=web
 

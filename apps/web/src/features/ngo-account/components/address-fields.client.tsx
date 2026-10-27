@@ -26,6 +26,9 @@ const PLACE_FIELDS = ['cep', 'street', 'number', 'district', 'city', 'uf'];
 /** Filled by the CEP; read-only until the CEP lookup answers (SIGN-17, SIGN-18). */
 const CEP_FIELDS = ['street', 'district', 'city', 'uf'] as const;
 
+/** Key of the pin read from the saved location. */
+const SAVED_PIN = 'saved';
+
 interface Pin {
   position: LatLngTuple;
   notFound: boolean;
@@ -64,6 +67,11 @@ export interface AddressFieldsProps {
   PinPicker: ComponentType<PinPickerProps>;
   tileUrl: string;
   attribution: string;
+  /**
+   * Profile (DEP-60, DEP-61): the saved location is shown still; a new address
+   * brings back the draggable pin to confirm.
+   */
+  savedReadOnly?: boolean;
 }
 
 /**
@@ -80,6 +88,7 @@ export function AddressFields({
   PinPicker,
   tileUrl,
   attribution,
+  savedReadOnly = false,
 }: AddressFieldsProps) {
   const id = (field: AddressField) => `${idPrefix}-${field}`;
   const [cepDone, setCepDone] = useState(
@@ -94,7 +103,7 @@ export function AddressFields({
       ? {
           position: [values.location.lat, values.location.lng],
           notFound: false,
-          key: 'saved',
+          key: SAVED_PIN,
         }
       : null,
   );
@@ -333,6 +342,7 @@ export function AddressFields({
                 position={pin.position}
                 notFound={pin.notFound}
                 onConfirmedChange={onConfirmedChange}
+                readOnly={savedReadOnly && pin.key === SAVED_PIN}
               />
             )
           : !geocoding &&

@@ -26,8 +26,12 @@ gate: migrate ## Roda tudo que o CI roda: formatação, lint, tipos, testes (100
 smoke: ## Constrói as imagens de produção sem .env, sobe com variáveis de teste e confere /health e /
 	./scripts/smoke.sh
 
-e2e: env ## Sobe a stack em segundo plano e roda os testes E2E (Playwright)
+e2e: env ## Sobe a stack em segundo plano, roda os seeders e os testes E2E (Playwright)
+	# Generated before the stack: compose would create src/generated owned by root.
+	npm run generate $(API)
 	$(COMPOSE) up -d --build --wait
+	# The specs read seed data (Patas do Bairro, Caramelo); the seeders are idempotent.
+	npm run prisma:seed $(API)
 	npm run test:e2e $(WEB)
 
 # ---------- local environment ----------

@@ -82,4 +82,15 @@ describe('/ong/[slug]/animais/[id]', () => {
   it('é uma rota bloqueante, para o 404 ser um status HTTP real', () => {
     expect(instant).toBe(false);
   });
+
+  it('T196: a navbar fica acima do detalhe, em todas as larguras', async () => {
+    getAnimal.mockResolvedValue(ANIMAL);
+
+    render(await AnimalRoute(props()));
+
+    const banner = screen.getByRole('banner');
+    expect(banner).toHaveAttribute('data-slot', 'navbar');
+    expect(banner.className).not.toContain('max-lg:hidden');
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'conteudo');
+  });
 });

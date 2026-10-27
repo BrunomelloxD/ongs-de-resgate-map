@@ -8,7 +8,10 @@ export interface LegalDocumentProps {
 
 export function LegalDocument({ text, version }: LegalDocumentProps) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10 text-fg">
+    <main
+      id="conteudo"
+      className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10 text-fg"
+    >
       <header className="flex flex-col gap-2">
         <h1 className="text-4xl font-extrabold">{text.title}</h1>
         <p className="text-sm text-fg-secondary">

@@ -46,6 +46,10 @@ const TOKENS: Record<string, { light: string; dark: string }> = {
   '--pin-closed': { light: '#5F6964', dark: '#5F6964' },
   '--pin-closed-dot': { light: '#ECE8DF', dark: '#ECE8DF' },
   '--shadow-card': { light: '#1118270F', dark: '#00000066' },
+  // T196: navbar "Rolada" (Fundo, 12% Tinta shadow); in dark, verde-mata escuro (navbar note, item 12).
+  '--bg-nav': { light: '#F5F3EE', dark: '#163A2B' },
+  '--bg-nav-menu': { light: '#163A2B', dark: '#163A2B' },
+  '--shadow-nav': { light: '#17241E1F', dark: '#00000066' },
   '--avatar-pink-bg': { light: '#FCE7F3', dark: '#500724' },
   '--avatar-pink-fg': { light: '#BE185D', dark: '#F9A8D4' },
   '--avatar-green-bg': { light: '#DCFCE7', dark: '#052E16' },
@@ -150,6 +154,10 @@ describe('contraste WCAG AA (A11Y-01)', () => {
     ['--text-on-brand', ['--brand-default']],
     ['--text-on-brand-deep', ['--brand-deep', '--brand-deep-pressed']],
     ['--text-on-brand-deep-soft', ['--brand-deep']],
+    // T196: the navbar in dark and the phone menu; the page text sits on --bg-nav.
+    ['--text-primary', ['--bg-nav']],
+    ['--text-on-brand-deep', ['--bg-nav-menu']],
+    ['--text-on-brand-deep-soft', ['--bg-nav-menu']],
     ['--brand-text', ['--bg-page', '--bg-surface', '--brand-soft']],
     ['--available-text', ['--available-soft', '--bg-page']],
     ['--error-text', ['--error-soft', '--bg-page']],
@@ -210,6 +218,18 @@ describe('foco, alvo de toque e área segura', () => {
     );
     expect(css).toMatch(
       /@utility touch-target \{[^}]*min-width:\s*var\(--target-min\)/,
+    );
+  });
+
+  it('T196: com a navbar fixa, o html reserva 64 px (80 px no desktop) para o foco e as âncoras', () => {
+    const rule =
+      css.match(
+        /html:has\(\[data-slot='navbar'\]\) \{([\s\S]*?)\n {2}\}/,
+      )?.[1] ?? '';
+
+    expect(rule).toMatch(/^\s*scroll-padding-top: 4rem;/);
+    expect(rule).toMatch(
+      /@media \(min-width: 64rem\) \{\s*scroll-padding-top: 5rem;/,
     );
   });
 

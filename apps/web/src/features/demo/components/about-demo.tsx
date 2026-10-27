@@ -14,7 +14,10 @@ export interface AboutDemoProps {
 /** DEMO-02: explains the automatic deletion, the current quotas and the photo credits. */
 export function AboutDemo({ info, credits }: AboutDemoProps) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-10 text-fg">
+    <main
+      id="conteudo"
+      className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-10 text-fg"
+    >
       <h1 className="text-4xl font-extrabold">{t.title}</h1>
       <p className="text-lg text-fg-secondary">
         {info.enabled ? t.deletion(info.retentionDays) : t.disabled}

@@ -19,7 +19,10 @@ export default async function DashboardRoute() {
   const ngo = await getMyNgo();
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6 text-fg">
+    <main
+      id="conteudo"
+      className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6 text-fg"
+    >
       <DemoExpiryNotice expiresAt={ngo.expiresAt} now={new Date()} />
       <Suspense fallback={null}>
         <DashboardContainer ngo={ngo} />

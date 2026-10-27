@@ -25,14 +25,9 @@ export const UNSAVED_CHANGES_TEXT = {
 /** Wordmark of the Logo. */
 export const BRAND_NAME = 'Animal Helper';
 
-// SPEC_DEVIATION: HOME-02 names only "Sou uma ONG"; the other header and footer
-// texts are the figcraft's (01-boas-vindas), and the targets the simplest ones:
-// "Mapa de ONGs" asks for the location first, "Para ONGs" opens the login.
+// SPEC_DEVIATION: the footer texts are the figcraft's (01-boas-vindas), and the
+// targets the simplest ones: "Para ONGs" opens the login.
 export const SITE_TEXT = {
-  nav: 'Principal',
-  howItWorks: 'Como funciona',
-  map: 'Mapa de ONGs',
-  ngo: 'Sou uma ONG',
   footerNav: 'Rodapé',
   forNgos: 'Para ONGs',
   privacy: 'Privacidade',
@@ -45,10 +40,52 @@ export const SITE_TEXT = {
 
 export const SITE_PATHS = {
   home: '/',
-  howItWorks: '/#como-funciona',
-  map: '/localizacao',
   ngo: '/entrar',
   privacy: '/privacidade',
   terms: '/termos',
   credits: '/sobre-a-demo',
+} as const;
+
+/**
+ * T196: texts of the figcraft "Navbar" page (12-navbar-*). SPEC_DEVIATION:
+ * HOME-01/HOME-03 name the link "Sou uma ONG"; the navbar the user approved
+ * on 26/10/2026 has "Entrar" (same target, /entrar) and "Cadastrar minha ONG".
+ * The figcraft doesn't word the menu dialog, the avatar link or the skip
+ * link's target; simplest ones.
+ */
+export const NAVBAR_TEXT = {
+  skip: 'Pular para o conteúdo',
+  nav: 'Principal',
+  map: 'Mapa de ONGs',
+  howItWorks: 'Como funciona',
+  forNgos: 'Para ONGs',
+  login: 'Entrar',
+  signup: 'Cadastrar minha ONG',
+  ngoArea: 'Área da ONG',
+  goToNgoArea: 'Ir para a Área da ONG',
+  logout: 'Sair',
+  openMenu: 'Abrir menu',
+  closeMenu: 'Fechar menu',
+  menu: 'Menu',
+  aboutDemo: 'Sobre a demonstração',
+  terms: 'Termos',
+  privacy: 'Privacidade',
+} as const;
+
+/** Where the skip link lands: every page's `<main>` has this id. */
+export const CONTENT_ID = 'conteudo';
+
+export const NAVBAR_PATHS = {
+  home: '/',
+  map: '/localizacao',
+  howItWorks: '/#como-funciona',
+  forNgos: '/#para-ongs',
+  login: '/entrar',
+  signup: '/cadastro/sobre',
+  ngoArea: '/painel',
+  aboutDemo: '/sobre-a-demo',
+  terms: '/termos',
+  privacy: '/privacidade',
+  /** Route Handler with the session state, read after hydration (SEC-03). */
+  status: '/session/status',
 } as const;

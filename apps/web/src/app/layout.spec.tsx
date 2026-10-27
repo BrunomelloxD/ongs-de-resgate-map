@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { isValidElement, Suspense, type ReactElement } from 'react';
 import { LiveRegion } from '@/components/ui/live-region.client';
+import { SkipLink } from '@/components/ui/skip-link';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
 import { server, TEST_API_URL } from '../../test/msw/server';
 import RootLayout, { metadata, viewport } from './layout';
@@ -27,21 +28,23 @@ function renderLayout() {
     lang: string;
     className: string;
     suppressHydrationWarning?: boolean;
-    children: Element<{ children: Element }>[];
+    children: Element<{ children: Element | Element[] }>[];
   }>;
   const [head, body] = html.props.children;
+  // T196: the skip link comes first, then the LiveRegion with the page.
+  const [skip, live] = body!.props.children as Element[];
 
-  return { html, head: head!, body: body! };
+  return { html, head: head!, body: body!, skip: skip!, live: live! };
 }
 
 describe('RootLayout', () => {
   it('define o idioma e envolve o conteúdo no body', () => {
-    const { html, body } = renderLayout();
+    const { html, body, live } = renderLayout();
 
     expect(html.type).toBe('html');
     expect(html.props.lang).toBe('pt-BR');
     expect(body.type).toBe('body');
-    expect(isValidElement(body.props.children)).toBe(true);
+    expect(isValidElement(live)).toBe(true);
   });
 
   it('aplica as variáveis das fontes do Design System no html', () => {
@@ -90,17 +93,22 @@ describe('RootLayout', () => {
   });
 
   it('envolve as páginas no provider da LiveRegion (A11Y-06)', () => {
-    const { body } = renderLayout();
+    const { live } = renderLayout();
 
-    expect(body.props.children.type).toBe(LiveRegion);
+    expect(live.type).toBe(LiveRegion);
+  });
+
+  it('T196: "Pular para o conteúdo" é o primeiro item do body, antes da faixa da demo', () => {
+    const { skip } = renderLayout();
+
+    expect(skip.type).toBe(SkipLink);
   });
 
   describe('faixa da demo', () => {
     function bannerSlot() {
-      const { body } = renderLayout();
-      const [suspense] = (
-        body.props.children as Element<{ children: Element[] }>
-      ).props.children;
+      const { live } = renderLayout();
+      const [suspense] = (live as Element<{ children: Element[] }>).props
+        .children;
       const container = (suspense as Element<{ children: Element }>).props
         .children as Element & { type: () => Promise<ReactElement | null> };
 

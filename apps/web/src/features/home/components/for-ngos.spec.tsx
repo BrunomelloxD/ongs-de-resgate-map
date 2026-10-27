@@ -19,6 +19,14 @@ describe('ForNgos', () => {
     ).toHaveAttribute('href', '/entrar');
   });
 
+  it('T196: é a seção #para-ongs, destino do "Para ONGs" da navbar', () => {
+    render(<ForNgos />);
+
+    expect(
+      screen.getByRole('region', { name: 'Você cuida de animais resgatados?' }),
+    ).toHaveAttribute('id', 'para-ongs');
+  });
+
   it('PERF-02: a foto está abaixo da dobra (lazy), com width, height e alt; em pino no celular', () => {
     const { container } = render(<ForNgos />);
     const img = container.querySelector('img')!;

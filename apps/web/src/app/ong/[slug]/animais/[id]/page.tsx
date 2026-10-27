@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { SiteFooter } from '@/components/ui/site-footer';
-import { SiteHeader } from '@/components/ui/site-header';
+import { Navbar } from '@/components/ui/navbar.client';
+import { logout } from '@/features/auth';
 import {
   AnimalDetail,
   animalMetadata,
@@ -34,9 +35,9 @@ export default async function AnimalRoute({
 
   return (
     <>
-      <SiteHeader desktopOnly />
+      <Navbar logoutAction={logout} />
       {/* The gutter goes on the full-width main, never on the max-w column (T166). */}
-      <main className="flex-1 px-gutter py-8">
+      <main id="conteudo" className="flex-1 px-gutter py-8">
         <div className="mx-auto w-full max-w-6xl">
           <AnimalDetail animal={animal} share={animalShare(animal)} />
         </div>

@@ -97,6 +97,7 @@ export function AuthShell(props: AuthShellProps) {
       </aside>
       {/* px-4 inside the narrow column: px-gutter is 120px on desktop. */}
       <main
+        id="conteudo"
         className={cn(
           'flex flex-1 flex-col px-4 py-6 text-fg',
           signup

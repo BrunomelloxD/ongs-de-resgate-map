@@ -1,18 +1,19 @@
 import { Suspense } from 'react';
 import { SiteFooter } from '@/components/ui/site-footer';
-import { SiteHeader } from '@/components/ui/site-header';
+import { Navbar } from '@/components/ui/navbar.client';
 import { ThemeToggle } from '@/components/ui/theme-toggle.client';
 import {
   AccountDeletedContainer,
   HomeHero,
   homeDictionary,
 } from '@/features/home';
+import { logout } from '@/features/auth';
 
 // Static shell: only the `?conta=excluida` notice (PROF-08) waits for the request.
 export default function HomePage({ searchParams }: PageProps<'/'>) {
   return (
     <>
-      <SiteHeader />
+      <Navbar logoutAction={logout} />
       <HomeHero
         notice={
           <Suspense fallback={null}>

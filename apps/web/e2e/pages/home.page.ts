@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { NAVBAR_TEXT } from '../../src/components/ui/ui.dictionary';
 import { homeDictionary as t } from '../../src/features/home/home.dictionary';
 
 export class HomePage {
@@ -29,7 +30,10 @@ export class HomePage {
     return this.page.getByRole('region', { name: t.forNgos.title });
   }
 
+  /** HOME-03: the NGO login, now "Entrar" in the navbar (T196). */
   get ngoLink() {
-    return this.page.getByRole('link', { name: t.ngoLink });
+    return this.page
+      .locator('[data-slot="navbar"]')
+      .getByRole('link', { name: NAVBAR_TEXT.login });
   }
 }

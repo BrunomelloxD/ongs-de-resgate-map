@@ -1,8 +1,7 @@
 // Texts from the welcome screen of the design (.specs/front/previews/01-boas-vindas-*).
-// HOME-01 fixes the CTA and the NGO link; the rest follows the design.
+// HOME-01 fixes the CTA; the NGO link is the navbar's "Entrar" (T196). The rest follows the design.
 export const homeDictionary = {
   brand: 'Animal Helper',
-  ngoLink: 'Sou uma ONG',
   title: 'Adote perto de casa.',
   lead: 'Encontre ONGs da sua região num mapa, conheça os cães e gatos que elas cuidam e combine a adoção direto pelo WhatsApp.',
   cta: 'Encontrar ONGs perto de mim',

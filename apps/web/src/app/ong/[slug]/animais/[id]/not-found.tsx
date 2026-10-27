@@ -6,7 +6,10 @@ const t = animalPageDictionary.notFound;
 /** ANI-06: 404 with a way back to the map. */
 export default function AnimalNotFound() {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-4 px-4 py-16 text-center text-fg">
+    <main
+      id="conteudo"
+      className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-4 px-4 py-16 text-center text-fg"
+    >
       <h1 className="font-heading text-4xl font-extrabold">{t.title}</h1>
       <p className="text-fg-secondary">{t.description}</p>
       <Link

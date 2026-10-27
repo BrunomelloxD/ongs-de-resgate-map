@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { LocationPage, locationDictionary } from '@/features/location';
 import { AppBar } from '@/components/ui/app-bar';
-import { SiteHeader } from '@/components/ui/site-header';
+import { Navbar } from '@/components/ui/navbar.client';
+import { logout } from '@/features/auth';
 
 export const metadata: Metadata = {
   title: locationDictionary.metaTitle,
@@ -14,8 +15,11 @@ const LOCATION_MAP_ART = '/photos/location-map.webp';
 export default function LocationRoute() {
   return (
     <>
-      <SiteHeader desktopOnly />
-      <main className="flex flex-1 flex-col text-fg lg:grid lg:grid-cols-2">
+      <Navbar current="map" logoutAction={logout} />
+      <main
+        id="conteudo"
+        className="flex flex-1 flex-col text-fg lg:grid lg:grid-cols-2"
+      >
         <div className="flex flex-col gap-2 px-4 py-2 lg:gap-4 lg:py-14 lg:pr-12 lg:pl-30">
           <AppBar
             title={locationDictionary.metaTitle}

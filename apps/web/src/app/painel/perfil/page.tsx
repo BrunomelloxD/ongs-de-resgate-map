@@ -26,7 +26,10 @@ export default async function ProfileRoute() {
   const { MAX_UPLOAD_MB, TILE_URL, TILE_ATTRIBUTION } = getEnv();
 
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-6 text-fg">
+    <main
+      id="conteudo"
+      className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-6 text-fg"
+    >
       {/* DIRTY-01: the link asks before leaving the profile with changes. */}
       <AppBar
         title={t.metaTitle}

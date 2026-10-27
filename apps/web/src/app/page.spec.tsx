@@ -41,7 +41,8 @@ describe('HomePage', () => {
   });
 
   // Moved from home-hero.spec.tsx (T182): the header and the footer are the page's now.
-  it('HOME-03: o link "Sou uma ONG" leva a /entrar', () => {
+  // T196 (SPEC_DEVIATION): the navbar names the NGO login "Entrar" (was "Sou uma ONG").
+  it('HOME-03: o "Entrar" da navbar leva a /entrar', () => {
     render(
       <HomePage
         searchParams={Promise.resolve({})}
@@ -51,7 +52,7 @@ describe('HomePage', () => {
 
     expect(
       within(screen.getByRole('banner')).getByRole('link', {
-        name: 'Sou uma ONG',
+        name: 'Entrar',
       }),
     ).toHaveAttribute('href', '/entrar');
   });
@@ -88,5 +89,19 @@ describe('HomePage', () => {
       hero.compareDocumentPosition(screen.getByRole('contentinfo')) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+  });
+
+  it('T196: a navbar fica no topo da home, sem link ativo', () => {
+    render(
+      <HomePage
+        searchParams={Promise.resolve({})}
+        params={Promise.resolve({})}
+      />,
+    );
+    const banner = screen.getByRole('banner');
+
+    expect(banner).toHaveAttribute('data-slot', 'navbar');
+    expect(banner).toHaveAttribute('data-raised', 'false');
+    expect(within(banner).queryByRole('link', { current: 'page' })).toBeNull();
   });
 });

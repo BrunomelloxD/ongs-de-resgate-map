@@ -59,6 +59,9 @@
   --color-avatar-green-bg: var(--avatar-green-bg);
   --color-avatar-green-fg: var(--avatar-green-fg);
   --shadow-card: 0 8px 24px var(--shadow-card);
+  --shadow-nav: 0 6px 24px var(--shadow-nav);
+  --color-nav: var(--bg-nav);
+  --color-nav-menu: var(--bg-nav-menu);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -157,6 +160,10 @@
   --pin-closed-dot: #ece8df;
   --field-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b83a2e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
   --shadow-card: #1118270f;
+  /* T196: the navbar after scrolling (figcraft "Rolada") and the phone menu. */
+  --bg-nav: #f5f3ee;
+  --bg-nav-menu: #163a2b;
+  --shadow-nav: #17241e1f;
   --avatar-pink-bg: #fce7f3;
   --avatar-pink-fg: #be185d;
   --avatar-green-bg: #dcfce7;
@@ -245,6 +252,9 @@
   --pin-closed-dot: #ece8df;
   --field-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f0847a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
   --shadow-card: #00000066;
+  --bg-nav: #163a2b;
+  --bg-nav-menu: #163a2b;
+  --shadow-nav: #00000066;
   --avatar-pink-bg: #500724;
   --avatar-pink-fg: #f9a8d4;
   --avatar-green-bg: #052e16;
@@ -295,6 +305,9 @@
     --pin-closed-dot: #ece8df;
     --field-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f0847a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
     --shadow-card: #00000066;
+    --bg-nav: #163a2b;
+    --bg-nav-menu: #163a2b;
+    --shadow-nav: #00000066;
     --avatar-pink-bg: #500724;
     --avatar-pink-fg: #f9a8d4;
     --avatar-green-bg: #052e16;
@@ -368,5 +381,12 @@
   }
   html {
     @apply font-sans;
+  }
+  /* T196: the sticky navbar never covers a focused element or an anchor (64px, 80px on desktop). */
+  html:has([data-slot='navbar']) {
+    scroll-padding-top: 4rem;
+    @media (min-width: 64rem) {
+      scroll-padding-top: 5rem;
+    }
   }
 }

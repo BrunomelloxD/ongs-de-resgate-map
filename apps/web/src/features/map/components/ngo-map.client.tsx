@@ -23,7 +23,6 @@ import { rankNgos } from '../lib/rank';
 import { mapDictionary as t } from '../map.dictionary';
 import type { MapSpecies, PlaceSearch, RadiusKm } from '../map.types';
 import { LocationErrorPanel } from './location-error-panel';
-import { MapColumnHeader } from './map-column-header';
 import { MapFilters, type MapFilterValues } from './map-filters';
 import { NgoList } from './ngo-list';
 import { NgoPreviewCard } from './ngo-preview-card';
@@ -164,7 +163,6 @@ function LocationError({
           aria-label={t.list.label}
           className="flex w-[440px] shrink-0 flex-col gap-6 overflow-y-auto bg-page px-6 py-6"
         >
-          <MapColumnHeader />
           {panel}
         </aside>
       )}
@@ -355,7 +353,6 @@ function NgoMapView({
           aria-label={t.list.label}
           className="flex w-[440px] shrink-0 flex-col gap-6 overflow-y-auto bg-page px-6 py-6"
         >
-          <MapColumnHeader />
           <PlaceSearch label={t.search.label} onPlace={goTo} />
           {list}
         </aside>

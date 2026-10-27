@@ -16,6 +16,8 @@ export const FOR_NGOS_PATHS = {
 export function ForNgos() {
   return (
     <section
+      // T196: "Para ONGs" of the navbar lands here (/#para-ongs).
+      id="para-ongs"
       aria-labelledby="for-ngos"
       className="flex flex-col items-start gap-5 px-gutter py-14 lg:flex-row-reverse lg:items-center lg:justify-between lg:gap-10 lg:py-28"
     >

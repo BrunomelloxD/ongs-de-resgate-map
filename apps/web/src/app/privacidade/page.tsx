@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { Navbar } from '@/components/ui/navbar.client';
+import { logout } from '@/features/auth';
 import {
   LegalDocument,
   legalDictionary,
@@ -9,6 +11,9 @@ export const metadata: Metadata = { title: legalDictionary.privacy.title };
 
 export default function PrivacyPage() {
   return (
-    <LegalDocument text={legalDictionary.privacy} version={TERMS_VERSION} />
+    <>
+      <Navbar logoutAction={logout} />
+      <LegalDocument text={legalDictionary.privacy} version={TERMS_VERSION} />
+    </>
   );
 }

@@ -22,7 +22,7 @@ export function HomeHero({
 }) {
   return (
     <div className="flex flex-1 flex-col bg-page text-fg">
-      <main className="flex flex-1 flex-col">
+      <main id="conteudo" className="flex flex-1 flex-col">
         {/* Two columns from 1280px; below that the photos sit above the text. */}
         <section
           aria-labelledby="home-title"

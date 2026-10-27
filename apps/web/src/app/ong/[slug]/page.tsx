@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getNgo, ngoMetadata, NgoPageContainer } from '@/features/ngo-page';
 import { SiteFooter } from '@/components/ui/site-footer';
-import { SiteHeader } from '@/components/ui/site-header';
+import { Navbar } from '@/components/ui/navbar.client';
+import { logout } from '@/features/auth';
 
 // Blocking route: the NGO is checked before anything streams, so a missing
 // slug answers HTTP 404 (NGO-11) instead of a 200 with the 404 page inside.
@@ -29,9 +30,9 @@ export default async function NgoRoute({
 
   return (
     <>
-      <SiteHeader desktopOnly />
+      <Navbar logoutAction={logout} />
       {/* The cover spans the page; the container puts the gutter under it (T166). */}
-      <main className="flex flex-1 flex-col">
+      <main id="conteudo" className="flex flex-1 flex-col">
         <Suspense fallback={null}>
           <NgoPageContainer ngo={ngo} searchParams={searchParams} />
         </Suspense>

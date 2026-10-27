@@ -89,7 +89,10 @@ describe('Button', () => {
   it('C-24: WhatsApp é o verde do WhatsApp com texto branco', () => {
     render(<Button variant="whatsapp">Falar no WhatsApp</Button>);
 
-    expect(screen.getByRole('button')).toHaveClass('bg-whatsapp', 'text-on-whatsapp');
+    expect(screen.getByRole('button')).toHaveClass(
+      'bg-whatsapp',
+      'text-on-whatsapp',
+    );
   });
 
   it('desabilitado usa Superfície 2 e texto cinza, sem opacidade', () => {

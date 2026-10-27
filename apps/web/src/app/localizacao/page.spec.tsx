@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import LocationRoute, { metadata } from './page';
 
 vi.mock('@/features/location', () => ({
@@ -28,5 +28,17 @@ describe('/localizacao', () => {
 
   it('tem o título da página', () => {
     expect(metadata.title).toBe('Localização');
+  });
+
+  it('T196: a navbar marca "Mapa de ONGs" como página atual; o conteúdo é o #conteudo', () => {
+    render(<LocationRoute />);
+    const nav = within(screen.getByRole('banner')).getByRole('navigation', {
+      name: 'Principal',
+    });
+
+    expect(
+      within(nav).getByRole('link', { name: 'Mapa de ONGs' }),
+    ).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'conteudo');
   });
 });

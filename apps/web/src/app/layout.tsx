@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import { LiveRegion } from '@/components/ui/live-region.client';
+import { SkipLink } from '@/components/ui/skip-link';
 import { DemoBannerContainer } from '@/features/demo';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
 import { bricolage, figtree } from './fonts';
@@ -31,6 +32,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="flex min-h-full flex-col">
+        {/* T196: the first Tab stop, before the demo banner (navbar note, item 5). */}
+        <SkipLink />
         <LiveRegion>
           <Suspense fallback={null}>
             <DemoBannerContainer />

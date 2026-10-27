@@ -66,4 +66,19 @@ describe('/ong/[slug]', () => {
   it('é uma rota bloqueante, para o 404 ser um status HTTP real', () => {
     expect(instant).toBe(false);
   });
+
+  it('T196: a navbar fica acima da página, em todas as larguras', async () => {
+    getNgo.mockResolvedValue(NGO);
+
+    render(await NgoRoute(props()));
+
+    const banner = screen.getByRole('banner');
+    expect(banner).toHaveAttribute('data-slot', 'navbar');
+    expect(banner.className).not.toContain('max-lg:hidden');
+    expect(
+      banner.compareDocumentPosition(screen.getByRole('main')) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'conteudo');
+  });
 });

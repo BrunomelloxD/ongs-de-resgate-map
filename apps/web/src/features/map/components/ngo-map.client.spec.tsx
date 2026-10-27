@@ -505,15 +505,16 @@ describe('NgoMap', () => {
   });
 
   describe('T187: estrutura do figcraft (03-mapa-*)', () => {
-    it('M-02: em 1440 px a coluna começa com o logo, "Sou uma ONG" e "Buscar outra região"', async () => {
+    // T196: the logo and the NGO link moved to the navbar, which sits over the column.
+    it('M-02: em 1440 px a coluna começa com "Buscar outra região", sem o topo antigo (logo e "Sou uma ONG")', async () => {
       mockWidth(1440);
       const { onHashChange } = setup();
       await advance(400);
       const column = screen.getByRole('complementary', { name: t.list.label });
-      const header = column.querySelector('[data-slot="map-column-header"]')!;
       const field = within(column).getByLabelText('Buscar outra região');
 
-      expect(column.firstElementChild).toBe(header);
+      expect(column.firstElementChild).toContainElement(field);
+      expect(within(column).queryByRole('link')).toBeNull();
       expect(
         field.compareDocumentPosition(within(column).getByRole('list')) &
           Node.DOCUMENT_POSITION_FOLLOWING,
@@ -773,17 +774,17 @@ describe('NgoMap', () => {
       ).toBeNull();
     });
 
-    it('M-14: no desktop, o erro fica na coluna, abaixo do logo e de "Sou uma ONG"', () => {
+    // T196: the logo and "Sou uma ONG" left the column for the navbar.
+    it('M-14: no desktop, o erro abre a coluna, sem o topo antigo (logo e "Sou uma ONG")', () => {
       mockWidth(1440);
       setup({ hash: '' });
       const column = screen.getByRole('complementary', { name: t.list.label });
 
-      expect(
-        within(column).getByRole('link', { name: 'Sou uma ONG' }),
-      ).toBeInTheDocument();
-      expect(
-        within(column).getByRole('heading', { name: t.locationError.title }),
-      ).toBeInTheDocument();
+      expect(within(column).queryByRole('link')).toBeNull();
+      const heading = within(column).getByRole('heading', {
+        name: t.locationError.title,
+      });
+      expect(column.firstElementChild).toContainElement(heading);
       expect(
         screen.queryByRole('region', { name: t.locationError.title }),
       ).not.toBeInTheDocument();
